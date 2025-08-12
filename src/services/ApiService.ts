@@ -2,7 +2,7 @@ import { Message, ProjectFile } from '../types';
 
 export class ApiService {
   private readonly API_KEY = 'demoApiKey';
-  private readonly TEMPLATE_URL = '/api/template';
+  private readonly TEMPLATE_URL = 'https://npnc7aykeee5uueftrgnupxkiu0vjahx.lambda-url.us-east-1.on.aws';
   private readonly STREAMING_URL = 'https://q2jgpxpl7y7tvn7nkfem5ro7hy0uigkb.lambda-url.us-east-1.on.aws';
 
   async getTemplate(): Promise<ProjectFile[]> {
