@@ -3,7 +3,7 @@ import { RefreshCw, ExternalLink } from 'lucide-react';
 import { useWebContainer } from '../contexts/WebContainerContext';
 
 export function PreviewPanel() {
-  const { previewUrl, isLoading: containerLoading } = useWebContainer();
+  const { previewUrl, isLoading: containerLoading, isDisabled } = useWebContainer();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = () => {
@@ -46,11 +46,13 @@ export function PreviewPanel() {
       </div>
       
       <div className="flex-1 relative">
-        {containerLoading ? (
+        {containerLoading || isDisabled ? (
           <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-4"></div>
-              <p className="text-gray-400">Initializing WebContainer...</p>
+              <p className="text-gray-400">
+                {isDisabled ? 'Updating files...' : 'Initializing WebContainer...'}
+              </p>
             </div>
           </div>
         ) : previewUrl ? (

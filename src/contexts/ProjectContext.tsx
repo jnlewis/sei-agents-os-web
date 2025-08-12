@@ -21,7 +21,7 @@ interface ProjectContextType {
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
-  const { webcontainer } = useWebContainer();
+  const { webcontainer, setDisabled, reloadContainer } = useWebContainer();
   const [messages, setMessages] = useState<Message[]>([]);
   const [files, setFiles] = useState<any[]>([]);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
@@ -210,6 +210,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const sendMessage = async (content: string) => {
     if (!webcontainer || !isInitialized) return;
 
+    // Disable WebContainer during generation
+    setDisabled(true);
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -239,6 +242,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
       setMessages(prev => [...prev, assistantMessage]);
 
+      let fileUpdateCount = 0;
+      const pendingFileUpdates = new Set<string>();
+
       await apiService.streamChat(requestData, (chunk) => {
         assistantContent += chunk;
         
@@ -258,6 +264,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         const { actions } = parseStreamContent(assistantContent);
         actions.forEach(async (action) => {
           if (action.type === 'file' && action.path && action.content) {
+            pendingFileUpdates.add(action.path);
             try {
               await webcontainer.fs.writeFile(action.path, action.content);
               
@@ -276,8 +283,12 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
                   }];
                 }
               });
+              
+              pendingFileUpdates.delete(action.path);
+              fileUpdateCount++;
             } catch (error) {
               console.error('Failed to write file:', error);
+              pendingFileUpdates.delete(action.path);
             }
           }
         });
@@ -285,6 +296,15 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
       // Update file tree after streaming is complete
       setFiles(buildFileTree(projectFiles));
+      
+      // Wait a bit for any remaining file operations to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Re-enable WebContainer and reload if files were updated
+      setDisabled(false);
+      if (fileUpdateCount > 0) {
+        await reloadContainer();
+      }
 
     } catch (error) {
       console.error('Failed to send message:', error);
@@ -294,6 +314,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         content: 'Sorry, there was an error processing your request.'
       };
       setMessages(prev => [...prev, errorMessage]);
+      // Re-enable WebContainer on error
+      setDisabled(false);
     }
 
     setIsLoading(false);

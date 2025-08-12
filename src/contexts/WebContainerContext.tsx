@@ -5,6 +5,9 @@ interface WebContainerContextType {
   webcontainer: WebContainer | null;
   previewUrl: string;
   isLoading: boolean;
+  isDisabled: boolean;
+  setDisabled: (disabled: boolean) => void;
+  reloadContainer: () => Promise<void>;
 }
 
 const WebContainerContext = createContext<WebContainerContextType | undefined>(undefined);
@@ -13,7 +16,35 @@ export function WebContainerProvider({ children }: { children: ReactNode }) {
   const [webcontainer, setWebcontainer] = useState<WebContainer | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isDisabled, setIsDisabled] = useState(false);
   const initializingRef = useRef(false);
+
+  const setDisabled = (disabled: boolean) => {
+    setIsDisabled(disabled);
+    if (disabled) {
+      setPreviewUrl('');
+    }
+  };
+
+  const reloadContainer = async () => {
+    if (!webcontainer || isDisabled) return;
+    
+    try {
+      // Kill existing processes
+      const processes = await webcontainer.spawn('pkill', ['-f', 'vite']);
+      await processes.exit;
+    } catch (error) {
+      // Ignore errors when killing processes
+    }
+    
+    try {
+      // Restart dev server
+      const devProcess = await webcontainer.spawn('npm', ['run', 'dev']);
+      // Don't await the process as it runs continuously
+    } catch (error) {
+      console.error('Failed to restart dev server:', error);
+    }
+  };
 
   useEffect(() => {
     const initWebContainer = async () => {
@@ -26,7 +57,9 @@ export function WebContainerProvider({ children }: { children: ReactNode }) {
         
         // Listen for server ready events
         instance.on('server-ready', (port, url) => {
-          setPreviewUrl(url);
+          if (!isDisabled) {
+            setPreviewUrl(url);
+          }
         });
 
         setIsLoading(false);
@@ -38,10 +71,17 @@ export function WebContainerProvider({ children }: { children: ReactNode }) {
     };
 
     initWebContainer();
-  }, []);
+  }, [isDisabled]);
 
   return (
-    <WebContainerContext.Provider value={{ webcontainer, previewUrl, isLoading }}>
+    <WebContainerContext.Provider value={{ 
+      webcontainer, 
+      previewUrl, 
+      isLoading, 
+      isDisabled, 
+      setDisabled, 
+      reloadContainer 
+    }}>
       {children}
     </WebContainerContext.Provider>
   );
