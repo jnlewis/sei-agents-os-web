@@ -135,28 +135,74 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
   const parseStreamContent = (content: string) => {
     const actions: Array<{ type: string; path?: string; content?: string }> = [];
-    let displayContent = content;
+    let displayContent = '';
 
-    // Find all Action tags
-    const actionRegex = /<Action[^>]*type="([^"]*)"[^>]*(?:filePath="([^"]*)"[^>]*)?>(.*?)<\/Action>/gs;
-    let match;
+    // Split content by lines and process each line
+    const lines = content.split('\n');
+    let insideTag = false;
+    let currentTag = '';
+    let tagContent = '';
+    let tagAttributes: any = {};
 
-    while ((match = actionRegex.exec(content)) !== null) {
-      const [fullMatch, type, filePath, actionContent] = match;
+    for (const line of lines) {
+      // Check for opening tags (Artifact, Action, etc.)
+      const openTagMatch = line.match(/<(Artifact|Action|boltArtifact|boltAction)([^>]*)>/);
+      if (openTagMatch) {
+        insideTag = true;
+        currentTag = openTagMatch[1];
+        tagContent = '';
+        
+        // Parse attributes
+        const attributeString = openTagMatch[2];
+        const typeMatch = attributeString.match(/type="([^"]*)"/);
+        const filePathMatch = attributeString.match(/filePath="([^"]*)"/);
+        
+        tagAttributes = {
+          type: typeMatch ? typeMatch[1] : '',
+          filePath: filePathMatch ? filePathMatch[1] : ''
+        };
+        
+        // If it's a file action, show file creation message
+        if (tagAttributes.type === 'file' && tagAttributes.filePath) {
+          const fileName = tagAttributes.filePath.split('/').pop();
+          displayContent += `\n\n📝 Creating/updating **${fileName}**\n\n`;
+        }
+        continue;
+      }
       
-      if (type === 'file' && filePath) {
-        actions.push({
-          type: 'file',
-          path: filePath,
-          content: actionContent.trim()
-        });
-
-        // Replace Action tag with file update message
-        const fileName = filePath.split('/').pop();
-        const fileUpdateMessage = `\n\n📝 **${fileName}**\n\`\`\`\nUpdating ${filePath}...\n\`\`\`\n\n`;
-        displayContent = displayContent.replace(fullMatch, fileUpdateMessage);
+      // Check for closing tags
+      const closeTagMatch = line.match(/<\/(Artifact|Action|boltArtifact|boltAction)>/);
+      if (closeTagMatch && insideTag && closeTagMatch[1] === currentTag) {
+        insideTag = false;
+        
+        // Process the collected tag content
+        if (currentTag === 'Action' || currentTag === 'boltAction') {
+          if (tagAttributes.type === 'file' && tagAttributes.filePath) {
+            actions.push({
+              type: 'file',
+              path: tagAttributes.filePath,
+              content: tagContent.trim()
+            });
+          }
+        }
+        
+        currentTag = '';
+        tagContent = '';
+        tagAttributes = {};
+        continue;
+      }
+      
+      // If we're inside a tag, collect the content
+      if (insideTag) {
+        tagContent += line + '\n';
+      } else {
+        // If we're not inside a tag, add to display content
+        displayContent += line + '\n';
       }
     }
+
+    // Clean up extra newlines
+    displayContent = displayContent.replace(/\n{3,}/g, '\n\n').trim();
 
     return { actions, displayContent };
   };
@@ -198,8 +244,16 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         
         // Parse content and extract actions
         const { actions, displayContent } = parseStreamContent(assistantContent);
-        assistantMessage.content = displayContent;
-        setMessages(prev => [...prev.slice(0, -1), { ...assistantMessage }]);
+        
+        // Update the message content progressively
+        setMessages(prev => {
+          const newMessages = [...prev];
+          const lastMessage = newMessages[newMessages.length - 1];
+          if (lastMessage && lastMessage.role === 'assistant') {
+            lastMessage.content = displayContent;
+          }
+          return newMessages;
+        });
 
         // Apply file changes as they come in
         actions.forEach(async (action) => {
