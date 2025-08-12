@@ -242,20 +242,20 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       await apiService.streamChat(requestData, (chunk) => {
         assistantContent += chunk;
         
-        // Parse content and extract actions
-        const { actions, displayContent } = parseStreamContent(assistantContent);
-        
-        // Update the message content progressively
+        // Update the message content progressively with raw content first
         setMessages(prev => {
           const newMessages = [...prev];
           const lastMessage = newMessages[newMessages.length - 1];
           if (lastMessage && lastMessage.role === 'assistant') {
+            // Parse and clean content for display
+            const { displayContent } = parseStreamContent(assistantContent);
             lastMessage.content = displayContent;
           }
           return newMessages;
         });
 
-        // Apply file changes as they come in
+        // Parse content and extract actions for file operations
+        const { actions } = parseStreamContent(assistantContent);
         actions.forEach(async (action) => {
           if (action.type === 'file' && action.path && action.content) {
             try {
