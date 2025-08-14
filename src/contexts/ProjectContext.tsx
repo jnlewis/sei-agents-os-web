@@ -276,7 +276,131 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
               await webcontainer.fs.writeFile(action.path, action.content);
               
               // Update project files
-              setProjectFiles(prev => {
+              const updatedFiles = await new Promise<ProjectFile[]>((resolve) => {
+                setProjectFiles(prev => {
+                  const existing = prev.find(f => f.path === action.path);
+                  let newFiles;
+                  if (existing) {
+                    existing.content = action.content!;
+                    existing.lastModified = Date.now();
+                    newFiles = [...prev];
+                  } else {
+                    newFiles = [...prev, {
+                      path: action.path!,
+                      content: action.content!,
+                      lastModified: Date.now()
+                    }];
+                  }
+                  resolve(newFiles);
+                  return newFiles;
+                });
+              });
+              
+              // Immediately update file tree display
+              setFiles(buildFileTree(updatedFiles));
+              
+              // Auto-expand new directories
+              const pathParts = action.path.split('/');
+              if (pathParts.length > 1) {
+                const dirPath = pathParts.slice(0, -1).join('/');
+                setExpandedDirs(prev => new Set([...prev, dirPath]));
+              }
+              
+              pendingFileUpdates.delete(action.path);
+              fileUpdateCount++;
+            } catch (error) {
+              console.error('Failed to write file:', error);
+              pendingFileUpdates.delete(action.path);
+            }
+          }
+        });
+      });
+
+      // Final update after streaming is complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Ensure file tree is updated one more time with final state
+      setProjectFiles(currentFiles => {
+        setFiles(buildFileTree(currentFiles));
+        return currentFiles;
+      });
+      
+      // Re-enable WebContainer and reload if files were updated
+      setDisabled(false);
+      if (fileUpdateCount > 0) {
+        await reloadContainer();
+      }
+
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        role: 'assistant',
+        content: 'Sorry, there was an error processing your request.'
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      // Re-enable WebContainer on error
+      setDisabled(false);
+    }
+
+    setIsLoading(false);
+  };
+
+  const toggleDir = (path: string) => {
+    setExpandedDirs(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(path)) {
+        newSet.delete(path);
+      } else {
+        newSet.add(path);
+      }
+      return newSet;
+    });
+  };
+
+  const getFileContent = (path: string): string => {
+    const file = projectFiles.find(f => f.path === path);
+    return file?.content || '';
+  };
+
+  const updateFile = async (path: string, content: string) => {
+    if (!webcontainer) return;
+
+    try {
+      await webcontainer.fs.writeFile(path, content);
+      
+      setProjectFiles(prev => {
+        const updated = [...prev];
+        const file = updated.find(f => f.path === path);
+        if (file) {
+          file.content = content;
+          file.lastModified = Date.now();
+        }
+        return updated;
+      });
+    } catch (error) {
+      console.error('Failed to update file:', error);
+    }
+  };
+
+  return (
+    <ProjectContext.Provider value={{
+      messages,
+      files,
+      selectedFile,
+      expandedDirs,
+      isLoading,
+      isInitialized,
+      sendMessage,
+      setSelectedFile,
+      toggleDir,
+      getFileContent,
+      updateFile
+    }}>
+      {children}
+    </ProjectContext.Provider>
+  );
+}
                 const existing = prev.find(f => f.path === action.path);
                 if (existing) {
                   existing.content = action.content!;
