@@ -10,7 +10,15 @@ export function CodeEditor() {
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (selectedFile) {
+      const cursorPosition = e.target.selectionStart;
       updateFile(selectedFile, e.target.value);
+      
+      // Restore cursor position after React re-render
+      requestAnimationFrame(() => {
+        if (textareaRef.current) {
+          textareaRef.current.setSelectionRange(cursorPosition, cursorPosition);
+        }
+      });
     }
   };
 
