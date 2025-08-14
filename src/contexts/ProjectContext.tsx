@@ -300,7 +300,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
               setFiles(buildFileTree(updatedFiles));
               
               // Auto-expand new directories
-              pathParts = action.path.split('/');
+             const pathParts = action.path.split('/');
               if (pathParts.length > 1) {
                 const dirPath = pathParts.slice(0, -1).join('/');
                 setExpandedDirs(prev => new Set([...prev, dirPath]));
