@@ -266,6 +266,13 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
           if (action.type === 'file' && action.path && action.content) {
             pendingFileUpdates.add(action.path);
             try {
+              // Ensure directory exists before writing file
+              const pathParts = action.path.split('/');
+              if (pathParts.length > 1) {
+                const dirPath = pathParts.slice(0, -1).join('/');
+                await webcontainer.fs.mkdir(dirPath, { recursive: true });
+              }
+              
               await webcontainer.fs.writeFile(action.path, action.content);
               
               // Update project files
