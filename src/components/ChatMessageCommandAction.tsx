@@ -37,7 +37,14 @@ export function ChatMessageCommandAction({ command, onComplete }: ChatMessageCom
       // Capture stdout
       process.output.pipeTo(new WritableStream({
         write(data) {
-          const text = new TextDecoder().decode(data);
+          let text: string;
+          if (data == null) {
+            text = '';
+          } else if (typeof data === 'string') {
+            text = data;
+          } else {
+            text = new TextDecoder().decode(data);
+          }
           commandOutput += text;
           setOutput(prev => prev + text);
         }
