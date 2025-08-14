@@ -134,43 +134,46 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   };
 
   const parseStreamContent = (content: string) => {
-    const actions: Array<{ type: string; path?: string; content?: string; contentType?: string }> = [];
+    const actions: Array<{ 
+      type: 'file' | 'command'; 
+      path?: string; 
+      content?: string; 
+      contentType?: string;
+      command?: string;
+    }> = [];
     let displayContent = '';
 
-    // Parse complete Action tags only
-    const actionRegex = /<Action\s+type="file"\s+filePath="([^"]+)"\s+contentType="([^"]+)"[^>]*>([\s\S]*?)<\/Action>/g;
+    // Parse both file and command Action tags
+    const fileActionRegex = /<Action\s+type="file"\s+filePath="([^"]+)"\s+contentType="([^"]+)"[^>]*>([\s\S]*?)<\/Action>/g;
+    const commandActionRegex = /<Action\s+type="command"\s+command="([^"]+)"[^>]*>(?:[\s\S]*?<\/Action>)?/g;
+    
     let match;
     let processedContent = content;
 
-    while ((match = actionRegex.exec(content)) !== null) {
+    // Process file actions
+    while ((match = fileActionRegex.exec(content)) !== null) {
       const [fullMatch, filePath, contentType, fileContent] = match;
       
-      // Only process if we have a complete Action tag
       actions.push({
         type: 'file',
         path: filePath,
         content: fileContent.trim(),
         contentType: contentType
       });
-
-      // Replace the Action tag with a file indicator for display
-      const fileName = filePath.split('/').pop();
-      const actionText = contentType === 'create' ? 'Creating' : 
-                        contentType === 'replace' ? 'Updating' : 
-                        contentType === 'delete' ? 'Deleting' : 'Modifying';
-      
-      processedContent = processedContent.replace(
-        fullMatch, 
-        `\n\n📝 **${actionText}** ${filePath}\n\n`
-      );
     }
 
-    // Remove any Artifact wrapper tags for cleaner display
-    displayContent = processedContent
-      .replace(/<Artifact[^>]*>/g, '')
-      .replace(/<\/Artifact>/g, '')
-      .replace(/\n{3,}/g, '\n\n')
-      .trim();
+    // Process command actions
+    while ((match = commandActionRegex.exec(content)) !== null) {
+      const [fullMatch, command] = match;
+      
+      actions.push({
+        type: 'command',
+        command: command
+      });
+    }
+
+    // Keep the original content for display (components will handle parsing)
+    displayContent = content;
 
     return { actions, displayContent };
   };
@@ -283,6 +286,18 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
           } catch (error) {
             console.error('Failed to process file:', error);
             pendingFileUpdates.delete(action.path);
+          }
+        } else if (action.type === 'command' && action.command && webcontainer) {
+          // Execute command in WebContainer
+          try {
+            const parts = action.command.trim().split(' ');
+            const cmd = parts[0];
+            const args = parts.slice(1);
+            
+            const process = await webcontainer.spawn(cmd, args);
+            await process.exit;
+          } catch (error) {
+            console.error('Failed to execute command:', action.command, error);
           }
         }
       }

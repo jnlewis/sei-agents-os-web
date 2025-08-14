@@ -1,41 +1,37 @@
 import React from 'react';
-import { User, Bot, FileText, Plus, Edit3 } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { User, Bot } from 'lucide-react';
 import { Message } from '../types';
+import { ChatMessageText } from './ChatMessageText';
+import { ChatMessageFileAction } from './ChatMessageFileAction';
+import { ChatMessageCommandAction } from './ChatMessageCommandAction';
 
 interface ChatMessageProps {
   message: Message;
 }
 
 interface MessageSegment {
-  type: 'text' | 'file-operations';
-  content: string;
-  operations?: Array<{
-    type: 'create' | 'replace' | 'delete';
-    path: string;
-    fileName: string;
-  }>;
+  type: 'text' | 'file-action' | 'command-action';
+  content?: string;
+  filePath?: string;
+  contentType?: 'create' | 'replace' | 'delete';
+  command?: string;
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user';
 
-  // Parse message content into segments with inline file operations
+  // Parse message content into segments
   const parseMessageSegments = (content: string): MessageSegment[] => {
     const segments: MessageSegment[] = [];
     
-    // Find Action tags and their content to replace with pills
-    const actionRegex = /<Action\s+type="file"\s+filePath="([^"]+)"\s+contentType="([^"]+)"[^>]*>[\s\S]*?<\/Action>|<Action\s+type="file"\s+filePath="([^"]+)"\s+contentType="([^"]+)"[^>]*>/g;
+    // Find all Action tags (both file and command types)
+    const actionRegex = /<Action\s+type="(file|command)"(?:\s+filePath="([^"]+)"\s+contentType="([^"]+)"|(?:\s+command="([^"]+)"))[^>]*>(?:[\s\S]*?<\/Action>)?/g;
     
     let lastIndex = 0;
     let match;
     
-    // Find all Action tags and their positions
     while ((match = actionRegex.exec(content)) !== null) {
-      const [fullMatch, filePath1, contentType1, filePath2, contentType2] = match;
-      const filePath = filePath1 || filePath2;
-      const contentType = contentType1 || contentType2;
+      const [fullMatch, actionType, filePath, contentType, command] = match;
       
       // Add text before this Action tag
       if (match.index > lastIndex) {
@@ -43,55 +39,59 @@ export function ChatMessage({ message }: ChatMessageProps) {
         if (textContent) {
           segments.push({
             type: 'text',
-            content: textContent
+            content: cleanTextForDisplay(textContent)
           });
         }
       }
       
-      // Add file operation segment immediately
-      segments.push({
-        type: 'file-operations',
-        content: '',
-        operations: [{
-          type: contentType as 'create' | 'replace' | 'delete',
-          path: filePath,
-          fileName: filePath.split('/').pop() || filePath
-        }]
-      });
+      // Add action segment
+      if (actionType === 'file' && filePath && contentType) {
+        segments.push({
+          type: 'file-action',
+          filePath,
+          contentType: contentType as 'create' | 'replace' | 'delete'
+        });
+      } else if (actionType === 'command' && command) {
+        segments.push({
+          type: 'command-action',
+          command
+        });
+      }
       
       lastIndex = match.index + fullMatch.length;
     }
     
-    // Add remaining text after last operation
+    // Add remaining text after last action
     if (lastIndex < content.length) {
       const remainingContent = content.slice(lastIndex).trim();
       if (remainingContent) {
         segments.push({
           type: 'text',
-          content: remainingContent
+          content: cleanTextForDisplay(remainingContent)
         });
       }
     }
     
-    // If no operations found, return the entire content as text
+    // If no actions found, return the entire content as text
     if (segments.length === 0) {
       segments.push({
         type: 'text',
-        content: content
+        content: cleanTextForDisplay(content)
       });
     }
     
     return segments;
   };
 
-  // Clean text content for markdown rendering
-  const cleanTextForMarkdown = (content: string): string => {
+  // Clean text content for display
+  const cleanTextForDisplay = (content: string): string => {
     return content
-      // Remove complete Action tags with content
-      .replace(/<Action\s+type="file"\s+filePath="[^"]+"\s+contentType="[^"]+"[^>]*>[\s\S]*?<\/Action>/g, '')
-      // Remove incomplete Action tags (opening only)
-      .replace(/<Action\s+type="file"\s+filePath="[^"]+"\s+contentType="[^"]+"[^>]*>/g, '')
-      .replace(/<(?:Artifact[^>]*>|\/Artifact>)/g, '')
+      // Remove Artifact wrapper tags
+      .replace(/<Artifact[^>]*>/g, '')
+      .replace(/<\/Artifact>/g, '')
+      // Remove any remaining Action tags and their content
+      .replace(/<Action\s+type="[^"]+"\s+[^>]*>[\s\S]*?<\/Action>/g, '')
+      .replace(/<Action\s+type="[^"]+"\s+[^>]*>/g, '')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
   };
@@ -107,7 +107,6 @@ export function ChatMessage({ message }: ChatMessageProps) {
       </div>
       
       <div className={`flex-1 ${isUser ? 'text-right' : ''}`}>
-        {/* Render segments in sequence */}
         {isUser ? (
           <div className="inline-block max-w-full p-3 rounded-lg bg-blue-600 text-white">
             <div className="whitespace-pre-wrap text-sm leading-relaxed">
@@ -118,110 +117,18 @@ export function ChatMessage({ message }: ChatMessageProps) {
           <div className="space-y-3">
             {segments.map((segment, index) => (
               <div key={index}>
-                {segment.type === 'file-operations' && segment.operations ? (
-                  /* File Operations Pills */
-                  <div className="flex gap-2 flex-wrap mb-2">
-                    {segment.operations.map((op, opIndex) => (
-                      <div
-                        key={opIndex}
-                        className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium hover:bg-opacity-40 transition-colors cursor-default ${
-                          op.type === 'create' 
-                            ? 'bg-green-600/20 border border-green-500/30 text-green-400 hover:bg-green-600/30'
-                            : op.type === 'delete'
-                            ? 'bg-red-600/20 border border-red-500/30 text-red-400 hover:bg-red-600/30'
-                            : 'bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600/30'
-                        }`}
-                        title={op.path}
-                      >
-                        <div className="flex items-center gap-1.5">
-                          {op.type === 'create' ? (
-                            <Plus size={12} className="text-green-400" />
-                          ) : op.type === 'delete' ? (
-                            <FileText size={12} className="text-red-400" />
-                          ) : (
-                            <Edit3 size={12} className="text-blue-400" />
-                          )}
-                          <FileText size={12} />
-                          <span>{op.fileName}</span>
-                        </div>
-                        
-                        {/* Tooltip */}
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                          {op.type === 'create' ? 'Creating' : op.type === 'delete' ? 'Deleting' : 'Updating'}: {op.path}
-                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : segment.content ? (
-                  /* Text Content */
-                  <div className="inline-block max-w-full p-3 rounded-lg bg-gray-700 text-gray-100">
-                    <div className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          // Custom styling for markdown elements
-                          h1: ({ children }) => <h1 className="text-lg font-bold mb-2 text-white">{children}</h1>,
-                          h2: ({ children }) => <h2 className="text-base font-bold mb-2 text-white">{children}</h2>,
-                          h3: ({ children }) => <h3 className="text-sm font-bold mb-1 text-white">{children}</h3>,
-                          p: ({ children }) => <p className="mb-2 last:mb-0 text-gray-100">{children}</p>,
-                          code: ({ inline, children }) => 
-                            inline ? (
-                              <code className="bg-gray-800 px-1.5 py-0.5 rounded text-xs font-mono text-green-400">
-                                {children}
-                              </code>
-                            ) : (
-                              <code className="block bg-gray-800 p-2 rounded text-xs font-mono text-green-400 overflow-x-auto">
-                                {children}
-                              </code>
-                            ),
-                          pre: ({ children }) => (
-                            <pre className="bg-gray-800 p-3 rounded-lg overflow-x-auto mb-2">
-                              {children}
-                            </pre>
-                          ),
-                          ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-                          ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-                          li: ({ children }) => <li className="text-gray-100">{children}</li>,
-                          blockquote: ({ children }) => (
-                            <blockquote className="border-l-4 border-blue-500 pl-3 italic text-gray-300 mb-2">
-                              {children}
-                            </blockquote>
-                          ),
-                          a: ({ href, children }) => (
-                            <a 
-                              href={href} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-blue-400 hover:text-blue-300 underline"
-                            >
-                              {children}
-                            </a>
-                          ),
-                          table: ({ children }) => (
-                            <div className="overflow-x-auto mb-2">
-                              <table className="min-w-full border border-gray-600 rounded">
-                                {children}
-                              </table>
-                            </div>
-                          ),
-                          th: ({ children }) => (
-                            <th className="border border-gray-600 px-2 py-1 bg-gray-800 text-left font-medium">
-                              {children}
-                            </th>
-                          ),
-                          td: ({ children }) => (
-                            <td className="border border-gray-600 px-2 py-1">
-                              {children}
-                            </td>
-                          ),
-                        }}
-                      >
-                        {cleanTextForMarkdown(segment.content)}
-                      </ReactMarkdown>
-                    </div>
-                  </div>
-                ) : null}
+                {segment.type === 'text' && segment.content && (
+                  <ChatMessageText content={segment.content} />
+                )}
+                {segment.type === 'file-action' && segment.filePath && segment.contentType && (
+                  <ChatMessageFileAction 
+                    filePath={segment.filePath} 
+                    contentType={segment.contentType} 
+                  />
+                )}
+                {segment.type === 'command-action' && segment.command && (
+                  <ChatMessageCommandAction command={segment.command} />
+                )}
               </div>
             ))}
           </div>
