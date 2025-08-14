@@ -134,75 +134,43 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   };
 
   const parseStreamContent = (content: string) => {
-    const actions: Array<{ type: string; path?: string; content?: string }> = [];
+    const actions: Array<{ type: string; path?: string; content?: string; contentType?: string }> = [];
     let displayContent = '';
 
-    // Split content by lines and process each line
-    const lines = content.split('\n');
-    let insideTag = false;
-    let currentTag = '';
-    let tagContent = '';
-    let tagAttributes: any = {};
+    // Parse complete Action tags only
+    const actionRegex = /<Action\s+type="file"\s+filePath="([^"]+)"\s+contentType="([^"]+)"[^>]*>([\s\S]*?)<\/Action>/g;
+    let match;
+    let processedContent = content;
 
-    for (const line of lines) {
-      // Check for opening tags (Artifact, Action, etc.)
-      const openTagMatch = line.match(/<(Artifact|Action|boltArtifact|boltAction)([^>]*)>/);
-      if (openTagMatch) {
-        insideTag = true;
-        currentTag = openTagMatch[1];
-        tagContent = '';
-        
-        // Parse attributes
-        const attributeString = openTagMatch[2];
-        const typeMatch = attributeString.match(/type="([^"]*)"/);
-        const filePathMatch = attributeString.match(/filePath="([^"]*)"/);
-        
-        tagAttributes = {
-          type: typeMatch ? typeMatch[1] : '',
-          filePath: filePathMatch ? filePathMatch[1] : ''
-        };
-        
-        // If it's a file action, show file creation message
-        if (tagAttributes.type === 'file' && tagAttributes.filePath) {
-          const fileName = tagAttributes.filePath.split('/').pop();
-          displayContent += `\n\n📝 **Creating/updating** ${tagAttributes.filePath}\n\n`;
-        }
-        continue;
-      }
+    while ((match = actionRegex.exec(content)) !== null) {
+      const [fullMatch, filePath, contentType, fileContent] = match;
       
-      // Check for closing tags
-      const closeTagMatch = line.match(/<\/(Artifact|Action|boltArtifact|boltAction)>/);
-      if (closeTagMatch && insideTag && closeTagMatch[1] === currentTag) {
-        insideTag = false;
-        
-        // Process the collected tag content
-        if (currentTag === 'Action' || currentTag === 'boltAction') {
-          if (tagAttributes.type === 'file' && tagAttributes.filePath) {
-            actions.push({
-              type: 'file',
-              path: tagAttributes.filePath,
-              content: tagContent.trim()
-            });
-          }
-        }
-        
-        currentTag = '';
-        tagContent = '';
-        tagAttributes = {};
-        continue;
-      }
+      // Only process if we have a complete Action tag
+      actions.push({
+        type: 'file',
+        path: filePath,
+        content: fileContent.trim(),
+        contentType: contentType
+      });
+
+      // Replace the Action tag with a file indicator for display
+      const fileName = filePath.split('/').pop();
+      const actionText = contentType === 'create' ? 'Creating' : 
+                        contentType === 'replace' ? 'Updating' : 
+                        contentType === 'delete' ? 'Deleting' : 'Modifying';
       
-      // If we're inside a tag, collect the content
-      if (insideTag) {
-        tagContent += line + '\n';
-      } else {
-        // If we're not inside a tag, add to display content
-        displayContent += line + '\n';
-      }
+      processedContent = processedContent.replace(
+        fullMatch, 
+        `\n\n📝 **${actionText}** ${filePath}\n\n`
+      );
     }
 
-    // Clean up extra newlines
-    displayContent = displayContent.replace(/\n{3,}/g, '\n\n').trim();
+    // Remove any Artifact wrapper tags for cleaner display
+    displayContent = processedContent
+      .replace(/<Artifact[^>]*>/g, '')
+      .replace(/<\/Artifact>/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
 
     return { actions, displayContent };
   };
@@ -248,25 +216,36 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       await apiService.streamChat(requestData, (chunk) => {
         assistantContent += chunk;
         
-        // Update the message content progressively with raw content first
+        // Update the message content progressively
         setMessages(prev => {
           const newMessages = [...prev];
           const lastMessage = newMessages[newMessages.length - 1];
           if (lastMessage && lastMessage.role === 'assistant') {
-            // Parse and clean content for display
             const { displayContent } = parseStreamContent(assistantContent);
             lastMessage.content = displayContent;
           }
           return newMessages;
         });
+      });
 
-        // Parse content and extract actions for file operations
-        const { actions } = parseStreamContent(assistantContent);
-        actions.forEach(async (action) => {
-          if (action.type === 'file' && action.path && action.content) {
-            pendingFileUpdates.add(action.path);
-            const pathParts = action.path.split('/');
-            try {
+      // Process file operations after streaming is complete
+      const { actions } = parseStreamContent(assistantContent);
+      
+      for (const action of actions) {
+        if (action.type === 'file' && action.path && action.content !== undefined) {
+          pendingFileUpdates.add(action.path);
+          const pathParts = action.path.split('/');
+          
+          try {
+            if (action.contentType === 'delete') {
+              // Delete file
+              await webcontainer.fs.rm(action.path);
+              
+              // Remove from project files
+              setProjectFiles(prev => prev.filter(f => f.path !== action.path));
+              fileUpdateCount++;
+            } else {
+              // Create or replace file
               // Ensure directory exists before writing file
               if (pathParts.length > 1) {
                 const dirPath = pathParts.slice(0, -1).join('/');
@@ -276,28 +255,20 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
               await webcontainer.fs.writeFile(action.path, action.content);
               
               // Update project files
-              const updatedFiles = await new Promise<ProjectFile[]>((resolve) => {
-                setProjectFiles(prev => {
-                  const existing = prev.find(f => f.path === action.path);
-                  let newFiles;
-                  if (existing) {
-                    existing.content = action.content!;
-                    existing.lastModified = Date.now();
-                    newFiles = [...prev];
-                  } else {
-                    newFiles = [...prev, {
-                      path: action.path!,
-                      content: action.content!,
-                      lastModified: Date.now()
-                    }];
-                  }
-                  resolve(newFiles);
-                  return newFiles;
-                });
+              setProjectFiles(prev => {
+                const existing = prev.find(f => f.path === action.path);
+                if (existing) {
+                  existing.content = action.content!;
+                  existing.lastModified = Date.now();
+                  return [...prev];
+                } else {
+                  return [...prev, {
+                    path: action.path!,
+                    content: action.content!,
+                    lastModified: Date.now()
+                  }];
+                }
               });
-              
-              // Immediately update file tree display
-              setFiles(buildFileTree(updatedFiles));
               
               // Auto-expand new directories
               if (pathParts.length > 1) {
@@ -305,20 +276,19 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
                 setExpandedDirs(prev => new Set([...prev, dirPath]));
               }
               
-              pendingFileUpdates.delete(action.path);
               fileUpdateCount++;
-            } catch (error) {
-              console.error('Failed to write file:', error);
-              pendingFileUpdates.delete(action.path);
             }
+            
+            pendingFileUpdates.delete(action.path);
+          } catch (error) {
+            console.error('Failed to process file:', error);
+            pendingFileUpdates.delete(action.path);
           }
-        });
-      });
+        }
+      }
 
-      // Final update after streaming is complete
+      // Update file tree display after all operations
       await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Ensure file tree is updated one more time with final state
       setProjectFiles(currentFiles => {
         setFiles(buildFileTree(currentFiles));
         return currentFiles;

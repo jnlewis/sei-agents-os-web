@@ -20,20 +20,30 @@ export function ChatMessage({ message }: ChatMessageProps) {
   // Parse file operations from message content
   const parseFileOperations = (content: string): FileOperation[] => {
     const operations: FileOperation[] = [];
-    const lines = content.split('\n');
     
-    for (const line of lines) {
-      // Look for file creation/update indicators
-      if (line.includes('📝 **') && line.includes('**')) {
-        const match = line.match(/📝 \*\*(Creating|Updating)\/updating \*\*(.+?)\*\*/);
-        if (match) {
-          const [, action, fileName] = match;
-          operations.push({
-            type: action.toLowerCase().includes('creat') ? 'create' : 'update',
-            path: fileName,
-            fileName: fileName.split('/').pop() || fileName
-          });
-        }
+    // Look for file operation indicators
+    const operationRegex = /📝 \*\*(Creating|Updating|Deleting|Modifying)\*\* (.+?)(?:\n|$)/g;
+    let match;
+    
+    while ((match = operationRegex.exec(content)) !== null) {
+      const [, action, filePath] = match;
+      operations.push({
+        type: action.toLowerCase().includes('creat') ? 'create' : 'update',
+        path: filePath.trim(),
+        fileName: filePath.split('/').pop() || filePath
+      });
+    }
+    
+    return operations;
+  };
+
+  // Clean content for markdown rendering (remove file operation indicators)
+  const cleanContentForMarkdown = (content: string): string => {
+    return content
+      .replace(/📝 \*\*(Creating|Updating|Deleting|Modifying)\*\* (.+?)(?:\n|$)/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  };
       }
     }
     
