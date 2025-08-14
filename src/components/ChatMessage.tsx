@@ -25,15 +25,17 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const parseMessageSegments = (content: string): MessageSegment[] => {
     const segments: MessageSegment[] = [];
     
-    // Find opening Action tags immediately (don't wait for closing tags)
-    const actionRegex = /<Action\s+type="file"\s+filePath="([^"]+)"\s+contentType="([^"]+)"[^>]*>/g;
+    // Find Action tags and their content to replace with pills
+    const actionRegex = /<Action\s+type="file"\s+filePath="([^"]+)"\s+contentType="([^"]+)"[^>]*>[\s\S]*?<\/Action>|<Action\s+type="file"\s+filePath="([^"]+)"\s+contentType="([^"]+)"[^>]*>/g;
     
     let lastIndex = 0;
     let match;
     
     // Find all Action tags and their positions
     while ((match = actionRegex.exec(content)) !== null) {
-      const [fullMatch, filePath, contentType] = match;
+      const [fullMatch, filePath1, contentType1, filePath2, contentType2] = match;
+      const filePath = filePath1 || filePath2;
+      const contentType = contentType1 || contentType2;
       
       // Add text before this Action tag
       if (match.index > lastIndex) {
@@ -85,7 +87,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
   // Clean text content for markdown rendering
   const cleanTextForMarkdown = (content: string): string => {
     return content
+      // Remove complete Action tags with content
       .replace(/<Action\s+type="file"\s+filePath="[^"]+"\s+contentType="[^"]+"[^>]*>[\s\S]*?<\/Action>/g, '')
+      // Remove incomplete Action tags (opening only)
+      .replace(/<Action\s+type="file"\s+filePath="[^"]+"\s+contentType="[^"]+"[^>]*>/g, '')
       .replace(/<(?:Artifact[^>]*>|\/Artifact>)/g, '')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
