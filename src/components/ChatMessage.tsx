@@ -89,9 +89,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
       // Remove Artifact wrapper tags
       .replace(/<Artifact[^>]*>/g, '')
       .replace(/<\/Artifact>/g, '')
-      // Remove any remaining Action tags and their content
-      .replace(/<Action\s+type="[^"]+"\s+[^>]*>[\s\S]*?<\/Action>/g, '')
-      .replace(/<Action\s+type="[^"]+"\s+[^>]*>/g, '')
+      // Remove Action tags and any content between them
+      .replace(/<Action\s+[^>]*>[\s\S]*?<\/Action>/g, '')
+      // Remove standalone Action tags (self-closing or unclosed)
+      .replace(/<Action\s+[^>]*>/g, '')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
   };
