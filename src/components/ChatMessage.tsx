@@ -44,19 +44,6 @@ export function ChatMessage({ message }: ChatMessageProps) {
       .replace(/\n{3,}/g, '\n\n')
       .trim();
   };
-      }
-    }
-    
-    return operations;
-  };
-
-  // Clean content for markdown rendering (remove file operation indicators)
-  const cleanContentForMarkdown = (content: string): string => {
-    return content
-      .replace(/📝 \*\*(Creating|Updating)\/updating \*\*(.+?)\*\*/g, '')
-      .replace(/\n{3,}/g, '\n\n')
-      .trim();
-  };
 
   const fileOperations = parseFileOperations(message.content);
   const cleanContent = cleanContentForMarkdown(message.content);
