@@ -14,12 +14,6 @@ export function CodeEditor() {
     }
   };
 
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-    }
-  }, [content]);
 
   if (!selectedFile) {
     return (
@@ -43,7 +37,6 @@ export function CodeEditor() {
           value={content}
           onChange={handleChange}
           className="w-full h-full bg-gray-900 text-gray-100 font-mono text-sm resize-none border-none outline-none"
-          style={{ minHeight: '100%' }}
           spellCheck={false}
         />
       </div>
