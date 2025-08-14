@@ -7,6 +7,9 @@ export class ApiService {
 
   async getTemplate(): Promise<ProjectFile[]> {
     try {
+      console.log('Making template API request to:', this.TEMPLATE_URL);
+      console.log('Using API key:', this.API_KEY);
+      
       const response = await fetch(this.TEMPLATE_URL, {
         method: 'GET',
         headers: {
@@ -14,23 +17,34 @@ export class ApiService {
         },
       });
 
+      console.log('Template API response status:', response.status);
+      console.log('Template API response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Template API error response:', errorText);
         throw new Error(`Template API failed: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('Template API response data:', data);
       
       if (!data.success) {
+        console.error('Template API returned unsuccessful response:', data);
         throw new Error(data.error || 'Template API returned unsuccessful response');
       }
 
+      console.log('Template files count:', data.files?.length || 0);
       return data.files.map((file: any) => ({
         path: file.path,
         content: file.content,
         lastModified: Date.now()
       }));
     } catch (error) {
-      console.error('Template API error:', error);
+      console.error('Template API error - Full details:', error);
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.error('Network error - check if the API endpoint is accessible');
+      }
       throw error;
     }
   }

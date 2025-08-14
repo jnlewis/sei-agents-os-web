@@ -82,11 +82,17 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
   const loadTemplateFiles = async () => {
     try {
+      console.log('Starting template load...');
       setIsLoading(true);
+      
+      console.log('Calling API service...');
       const templateFiles = await apiService.getTemplate();
+      console.log('Template files received:', templateFiles.length, 'files');
+      
       setProjectFiles(templateFiles);
       
       if (webcontainer) {
+        console.log('Setting up WebContainer file structure...');
         // Create file structure for WebContainer
         const fileTree: { [key: string]: any } = {};
         
@@ -115,19 +121,29 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         });
 
         await webcontainer.mount(fileTree);
+        console.log('Files mounted to WebContainer');
         
         // Start dev server
+        console.log('Installing dependencies...');
         const installProcess = await webcontainer.spawn('npm', ['install']);
         await installProcess.exit;
+        console.log('Dependencies installed');
         
+        console.log('Starting dev server...');
         const devProcess = await webcontainer.spawn('npm', ['run', 'dev']);
+        console.log('Dev server started');
       }
       
       setFiles(buildFileTree(templateFiles));
       setExpandedDirs(new Set(['src']));
+      console.log('Template loading completed successfully');
       setIsInitialized(true);
     } catch (error) {
-      console.error('Failed to load template:', error);
+      console.error('Failed to load template - Full error:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace'
+      });
     } finally {
       setIsLoading(false);
     }
