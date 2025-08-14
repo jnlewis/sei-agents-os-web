@@ -165,7 +165,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         // If it's a file action, show file creation message
         if (tagAttributes.type === 'file' && tagAttributes.filePath) {
           const fileName = tagAttributes.filePath.split('/').pop();
-          displayContent += `\n\n📝 Creating/updating **${fileName}**\n\n`;
+          displayContent += `\n\n📝 **Creating/updating** ${tagAttributes.filePath}\n\n`;
         }
         continue;
       }
