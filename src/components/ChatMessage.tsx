@@ -25,34 +25,19 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const parseMessageSegments = (content: string): MessageSegment[] => {
     const segments: MessageSegment[] = [];
     
-    // Split content by Artifact/Action tags to create segments
-    const artifactRegex = /<(?:Artifact[^>]*>|Action[^>]*>)/g;
-    const operationRegex = /📝 \*\*(Creating|Updating|Deleting|Modifying)\*\* (.+?)(?:\n|$)/g;
+    // Find opening Action tags immediately (don't wait for closing tags)
+    const actionRegex = /<Action\s+type="file"\s+filePath="([^"]+)"\s+contentType="([^"]+)"[^>]*>/g;
     
     let lastIndex = 0;
     let match;
     
-    // Find all file operation indicators and their positions
-    const operations: Array<{ index: number; operation: any }> = [];
-    while ((match = operationRegex.exec(content)) !== null) {
-      const [fullMatch, action, filePath] = match;
-      operations.push({
-        index: match.index,
-        operation: {
-          type: action.toLowerCase().includes('creat') ? 'create' : 
-                action.toLowerCase().includes('delet') ? 'delete' : 'replace',
-          path: filePath.trim(),
-          fileName: filePath.split('/').pop() || filePath,
-          fullMatch
-        }
-      });
-    }
-    
-    // Create segments based on operation positions
-    operations.forEach((op, index) => {
-      // Add text before this operation
-      if (op.index > lastIndex) {
-        const textContent = content.slice(lastIndex, op.index).trim();
+    // Find all Action tags and their positions
+    while ((match = actionRegex.exec(content)) !== null) {
+      const [fullMatch, filePath, contentType] = match;
+      
+      // Add text before this Action tag
+      if (match.index > lastIndex) {
+        const textContent = content.slice(lastIndex, match.index).trim();
         if (textContent) {
           segments.push({
             type: 'text',
@@ -61,39 +46,19 @@ export function ChatMessage({ message }: ChatMessageProps) {
         }
       }
       
-      // Group consecutive operations together
-      const consecutiveOps = [op.operation];
-      let nextIndex = index + 1;
-      let endIndex = op.index + op.operation.fullMatch.length;
-      
-      while (nextIndex < operations.length) {
-        const nextOp = operations[nextIndex];
-        const betweenContent = content.slice(endIndex, nextOp.index).trim();
-        
-        // If there's only whitespace between operations, group them
-        if (!betweenContent || betweenContent.match(/^\s*$/)) {
-          consecutiveOps.push(nextOp.operation);
-          endIndex = nextOp.index + nextOp.operation.fullMatch.length;
-          nextIndex++;
-        } else {
-          break;
-        }
-      }
-      
-      // Add file operations segment
+      // Add file operation segment immediately
       segments.push({
         type: 'file-operations',
         content: '',
-        operations: consecutiveOps
+        operations: [{
+          type: contentType as 'create' | 'replace' | 'delete',
+          path: filePath,
+          fileName: filePath.split('/').pop() || filePath
+        }]
       });
       
-      lastIndex = endIndex;
-      
-      // Skip the operations we've already processed
-      while (index + 1 < operations.length && index + 1 < nextIndex) {
-        index++;
-      }
-    });
+      lastIndex = match.index + fullMatch.length;
+    }
     
     // Add remaining text after last operation
     if (lastIndex < content.length) {
@@ -120,9 +85,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
   // Clean text content for markdown rendering
   const cleanTextForMarkdown = (content: string): string => {
     return content
-      .replace(/📝 \*\*(Creating|Updating|Deleting|Modifying)\*\* (.+?)(?:\n|$)/g, '')
+      .replace(/<Action\s+type="file"\s+filePath="[^"]+"\s+contentType="[^"]+"[^>]*>[\s\S]*?<\/Action>/g, '')
       .replace(/<(?:Artifact[^>]*>|\/Artifact>)/g, '')
-      .replace(/<(?:Action[^>]*>|\/Action>)/g, '')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
   };
