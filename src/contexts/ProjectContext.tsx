@@ -30,6 +30,15 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
   const [projectFiles, setProjectFiles] = useState<ProjectFile[]>([]);
   const [projectId] = useState(() => 'project-' + Date.now());
+  const [streamingState, setStreamingState] = useState<{
+    insideArtifact: boolean;
+    currentAction: string;
+    actionBuffer: string;
+  }>({
+    insideArtifact: false,
+    currentAction: '',
+    actionBuffer: ''
+  });
   
   const apiService = new ApiService();
 
@@ -235,31 +244,130 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: ''
+        content: '',
+        streamingActions: []
       };
 
       setMessages(prev => [...prev, assistantMessage]);
 
       let fileUpdateCount = 0;
       const pendingFileUpdates = new Set<string>();
+      let currentStreamingState = {
+        insideArtifact: false,
+        currentAction: '',
+        actionBuffer: '',
+        textContent: ''
+      };
 
       await apiService.streamChat(requestData, (chunk) => {
         assistantContent += chunk;
         
-        // Update the message content progressively, but filter out Artifact content from text display
+        // Process chunk character by character for progressive streaming
+        for (let i = 0; i < chunk.length; i++) {
+          const char = chunk[i];
+          const remainingChunk = chunk.slice(i);
+          
+          if (!currentStreamingState.insideArtifact) {
+            // Check if we're entering an Artifact
+            if (remainingChunk.startsWith('<Artifact')) {
+              currentStreamingState.insideArtifact = true;
+              // Skip to end of opening tag
+              const tagEnd = remainingChunk.indexOf('>');
+              if (tagEnd !== -1) {
+                i += tagEnd;
+              }
+              continue;
+            } else {
+              // Add character to text content
+              currentStreamingState.textContent += char;
+            }
+          } else {
+            // Inside artifact - look for Action tags or closing Artifact
+            if (remainingChunk.startsWith('</Artifact>')) {
+              currentStreamingState.insideArtifact = false;
+              i += '</Artifact>'.length - 1;
+              continue;
+            } else if (remainingChunk.startsWith('<Action')) {
+              // Parse action tag
+              const actionTagEnd = remainingChunk.indexOf('>');
+              if (actionTagEnd !== -1) {
+                const actionTag = remainingChunk.slice(0, actionTagEnd + 1);
+                const typeMatch = actionTag.match(/type="([^"]+)"/);
+                const filePathMatch = actionTag.match(/filePath="([^"]+)"/);
+                const contentTypeMatch = actionTag.match(/contentType="([^"]+)"/);
+                const commandMatch = actionTag.match(/command="([^"]+)"/);
+                
+                if (typeMatch) {
+                  const actionType = typeMatch[1];
+                  
+                  if (actionType === 'file' && filePathMatch && contentTypeMatch) {
+                    // Add file action immediately
+                    setMessages(prev => {
+                      const newMessages = [...prev];
+                      const lastMessage = newMessages[newMessages.length - 1];
+                      if (lastMessage && lastMessage.role === 'assistant') {
+                        const newAction = {
+                          id: Date.now() + Math.random(),
+                          type: 'file' as const,
+                          filePath: filePathMatch[1],
+                          contentType: contentTypeMatch[1] as 'create' | 'replace' | 'delete'
+                        };
+                        lastMessage.streamingActions = [...(lastMessage.streamingActions || []), newAction];
+                      }
+                      return newMessages;
+                    });
+                  } else if (actionType === 'command' && commandMatch) {
+                    // Add command action immediately
+                    setMessages(prev => {
+                      const newMessages = [...prev];
+                      const lastMessage = newMessages[newMessages.length - 1];
+                      if (lastMessage && lastMessage.role === 'assistant') {
+                        const newAction = {
+                          id: Date.now() + Math.random(),
+                          type: 'command' as const,
+                          command: commandMatch[1]
+                        };
+                        lastMessage.streamingActions = [...(lastMessage.streamingActions || []), newAction];
+                      }
+                      return newMessages;
+                    });
+                  }
+                }
+                
+                i += actionTagEnd;
+                continue;
+              }
+            }
+            // Skip characters inside artifact (except for action parsing above)
+          }
+        }
+        
+        // Update message with current text content
         setMessages(prev => {
           const newMessages = [...prev];
           const lastMessage = newMessages[newMessages.length - 1];
           if (lastMessage && lastMessage.role === 'assistant') {
-            // Store the full content for action parsing, but clean it for display
-            lastMessage.content = assistantContent;
+            lastMessage.content = currentStreamingState.textContent;
+            lastMessage.fullContent = assistantContent; // Store full content for final processing
           }
           return newMessages;
         });
       });
 
       // Process file operations after streaming is complete
-      const { actions } = parseStreamContent(assistantContent);
+      const finalContent = assistantContent;
+      const { actions } = parseStreamContent(finalContent);
+      
+      // Update final message content for proper parsing
+      setMessages(prev => {
+        const newMessages = [...prev];
+        const lastMessage = newMessages[newMessages.length - 1];
+        if (lastMessage && lastMessage.role === 'assistant') {
+          lastMessage.content = finalContent;
+          lastMessage.streamingActions = []; // Clear streaming actions as they're now in parsed content
+        }
+        return newMessages;
+      });
       
       for (const action of actions) {
         if (action.type === 'file' && action.path && action.content !== undefined) {

@@ -119,6 +119,22 @@ export function ChatMessage({ message }: ChatMessageProps) {
           </div>
         ) : (
           <div className="space-y-3">
+            {/* Show streaming actions first */}
+            {message.streamingActions?.map((action) => (
+              <div key={action.id}>
+                {action.type === 'file' && action.filePath && action.contentType && (
+                  <ChatMessageFileAction 
+                    filePath={action.filePath} 
+                    contentType={action.contentType} 
+                  />
+                )}
+                {action.type === 'command' && action.command && (
+                  <ChatMessageCommandAction command={action.command} />
+                )}
+              </div>
+            ))}
+            
+            {/* Show parsed segments from final content */}
             {segments.map((segment, index) => (
               <div key={index}>
                 {segment.type === 'text' && segment.content && (
