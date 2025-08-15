@@ -35,6 +35,7 @@ export function Sidebar({ width }: SidebarProps) {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {!isInitialized ? (
           <div className="text-gray-400 text-center py-8">
+            <div className="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-4"></div>
             <p>Initializing project...</p>
           </div>
         ) : messages.length === 0 ? (
@@ -51,10 +52,10 @@ export function Sidebar({ width }: SidebarProps) {
         {isLoading && isInitialized && (
           <div className="text-blue-400 text-center">
             <div className="flex justify-center">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className="flex space-x-2">
+                <div className="w-3 h-3 bg-blue-400 rounded-full animate-bounce"></div>
+                <div className="w-3 h-3 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-3 h-3 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
             </div>
           </div>
