@@ -159,33 +159,44 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     }> = [];
     let displayContent = '';
 
-    // Parse both file and command Action tags
+    // Parse Artifact blocks containing Action tags
+    const artifactRegex = /<Artifact[^>]*>([\s\S]*?)<\/Artifact>/g;
     const fileActionRegex = /<Action\s+type="file"\s+filePath="([^"]+)"\s+contentType="([^"]+)"[^>]*>([\s\S]*?)<\/Action>/g;
     const commandActionRegex = /<Action\s+type="command"\s+command="([^"]+)"[^>]*>(?:[\s\S]*?<\/Action>)?/g;
     
-    let match;
-    let processedContent = content;
+    let artifactMatch;
 
-    // Process file actions
-    while ((match = fileActionRegex.exec(content)) !== null) {
-      const [fullMatch, filePath, contentType, fileContent] = match;
+    // Process each artifact block
+    while ((artifactMatch = artifactRegex.exec(content)) !== null) {
+      const [, artifactContent] = artifactMatch;
       
-      actions.push({
-        type: 'file',
-        path: filePath,
-        content: fileContent.trim(),
-        contentType: contentType
-      });
-    }
+      // Reset regex indices for new artifact content
+      fileActionRegex.lastIndex = 0;
+      commandActionRegex.lastIndex = 0;
+      
+      // Process file actions within this artifact
+      let fileMatch;
+      while ((fileMatch = fileActionRegex.exec(artifactContent)) !== null) {
+        const [, filePath, contentType, fileContent] = fileMatch;
+        
+        actions.push({
+          type: 'file',
+          path: filePath,
+          content: fileContent.trim(),
+          contentType: contentType
+        });
+      }
 
-    // Process command actions
-    while ((match = commandActionRegex.exec(content)) !== null) {
-      const [fullMatch, command] = match;
-      
-      actions.push({
-        type: 'command',
-        command: command
-      });
+      // Process command actions within this artifact
+      let commandMatch;
+      while ((commandMatch = commandActionRegex.exec(artifactContent)) !== null) {
+        const [, command] = commandMatch;
+        
+        actions.push({
+          type: 'command',
+          command: command
+        });
+      }
     }
 
     // Keep the original content for display (components will handle parsing)

@@ -24,18 +24,20 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const parseMessageSegments = (content: string): MessageSegment[] => {
     const segments: MessageSegment[] = [];
     
-    // Find all Action tags (both file and command types)
-    const actionRegex = /<Action\s+type="(file|command)"(?:\s+filePath="([^"]+)"\s+contentType="([^"]+)"|(?:\s+command="([^"]+)"))[^>]*>(?:[\s\S]*?<\/Action>)?/g;
+    // Find all Artifact blocks containing Action tags
+    const artifactRegex = /<Artifact[^>]*>([\s\S]*?)<\/Artifact>/g;
+    // Find Action tags within artifacts
+    const actionRegex = /<Action\s+type="(file|command)"(?:\s+filePath="([^"]+)"\s+contentType="([^"]+)"|(?:\s+command="([^"]+)"))[^>]*>([\s\S]*?)<\/Action>/g;
     
     let lastIndex = 0;
-    let match;
+    let artifactMatch;
     
-    while ((match = actionRegex.exec(content)) !== null) {
-      const [fullMatch, actionType, filePath, contentType, command] = match;
+    while ((artifactMatch = artifactRegex.exec(content)) !== null) {
+      const [fullArtifactMatch, artifactContent] = artifactMatch;
       
-      // Add text before this Action tag
-      if (match.index > lastIndex) {
-        const textContent = content.slice(lastIndex, match.index).trim();
+      // Add text before this Artifact
+      if (artifactMatch.index > lastIndex) {
+        const textContent = content.slice(lastIndex, artifactMatch.index).trim();
         if (textContent) {
           segments.push({
             type: 'text',
@@ -44,24 +46,31 @@ export function ChatMessage({ message }: ChatMessageProps) {
         }
       }
       
-      // Add action segment
-      if (actionType === 'file' && filePath && contentType) {
-        segments.push({
-          type: 'file-action',
-          filePath,
-          contentType: contentType as 'create' | 'replace' | 'delete'
-        });
-      } else if (actionType === 'command' && command) {
-        segments.push({
-          type: 'command-action',
-          command
-        });
+      // Parse actions within this artifact
+      let actionMatch;
+      actionRegex.lastIndex = 0; // Reset regex for new artifact content
+      
+      while ((actionMatch = actionRegex.exec(artifactContent)) !== null) {
+        const [, actionType, filePath, contentType, command] = actionMatch;
+        
+        if (actionType === 'file' && filePath && contentType) {
+          segments.push({
+            type: 'file-action',
+            filePath,
+            contentType: contentType as 'create' | 'replace' | 'delete'
+          });
+        } else if (actionType === 'command' && command) {
+          segments.push({
+            type: 'command-action',
+            command
+          });
+        }
       }
       
-      lastIndex = match.index + fullMatch.length;
+      lastIndex = artifactMatch.index + fullArtifactMatch.length;
     }
     
-    // Add remaining text after last action
+    // Add remaining text after last artifact
     if (lastIndex < content.length) {
       const remainingContent = content.slice(lastIndex).trim();
       if (remainingContent) {
@@ -86,13 +95,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
   // Clean text content for display
   const cleanTextForDisplay = (content: string): string => {
     return content
-      // Remove Artifact wrapper tags
-      .replace(/<Artifact[^>]*>/g, '')
-      .replace(/<\/Artifact>/g, '')
-      // Remove Action tags and any content between them
-      .replace(/<Action\s+[^>]*>[\s\S]*?<\/Action>/g, '')
-      // Remove standalone Action tags (self-closing or unclosed)
-      .replace(/<Action\s+[^>]*>/g, '')
+      // Remove entire Artifact blocks (including nested Action tags)
+      .replace(/<Artifact[^>]*>[\s\S]*?<\/Artifact>/g, '')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
   };
