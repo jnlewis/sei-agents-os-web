@@ -338,7 +338,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
                             id: Date.now() + Math.random(),
                             type: 'file' as const,
                             filePath: filePath,
-                            contentType: contentType as 'create' | 'replace' | 'delete'
+                            contentType: contentType as 'create' | 'replace' | 'delete',
+                            isCompleted: false
                           };
                           currentStreamingState.streamingActions.push(newAction);
                           
@@ -429,13 +430,26 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       const finalContent = assistantContent;
       const { actions } = parseStreamContent(finalContent);
       
+      // Mark all streaming actions as completed
+      setMessages(prev => {
+        const newMessages = [...prev];
+        const lastMessage = newMessages[newMessages.length - 1];
+        if (lastMessage && lastMessage.role === 'assistant' && lastMessage.streamingActions) {
+          lastMessage.streamingActions = lastMessage.streamingActions.map(action => ({
+            ...action,
+            isCompleted: true
+          }));
+        }
+        return newMessages;
+      });
+      
       // Update final message content for proper parsing
       setMessages(prev => {
         const newMessages = [...prev];
         const lastMessage = newMessages[newMessages.length - 1];
         if (lastMessage && lastMessage.role === 'assistant') {
           lastMessage.content = finalContent;
-          lastMessage.streamingActions = []; // Clear streaming actions as they're now in parsed content
+          // Keep streaming actions but mark them as completed
         }
         return newMessages;
       });

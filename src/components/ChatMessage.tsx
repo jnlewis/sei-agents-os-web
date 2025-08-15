@@ -125,7 +125,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 {action.type === 'file' && action.filePath && action.contentType && (
                   <ChatMessageFileAction 
                     filePath={action.filePath} 
-                    contentType={action.contentType} 
+                    contentType={action.contentType}
+                    isCompleted={action.isCompleted}
                   />
                 )}
                 {action.type === 'command' && action.command && (

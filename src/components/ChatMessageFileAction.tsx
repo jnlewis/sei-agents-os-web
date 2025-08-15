@@ -1,12 +1,21 @@
-import React from 'react';
-import { FileText, Plus, Edit3, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileText, Plus, Edit3, Trash2, Loader2 } from 'lucide-react';
 
 interface ChatMessageFileActionProps {
   filePath: string;
   contentType: 'create' | 'replace' | 'delete';
+  isCompleted?: boolean;
 }
 
-export function ChatMessageFileAction({ filePath, contentType }: ChatMessageFileActionProps) {
+export function ChatMessageFileAction({ filePath, contentType, isCompleted = false }: ChatMessageFileActionProps) {
+  const [showLoading, setShowLoading] = useState(true);
+
+  useEffect(() => {
+    if (isCompleted) {
+      setShowLoading(false);
+    }
+  }, [isCompleted]);
+
   const fileName = filePath.split('/').pop() || filePath;
 
   const getActionConfig = () => {
@@ -56,6 +65,9 @@ export function ChatMessageFileAction({ filePath, contentType }: ChatMessageFile
         title={filePath}
       >
         <div className="flex items-center gap-1.5">
+          {showLoading && (
+            <Loader2 size={10} className="animate-spin text-gray-400" />
+          )}
           <IconComponent size={12} className={config.iconColor} />
           <FileText size={12} />
           <span>{fileName}</span>
