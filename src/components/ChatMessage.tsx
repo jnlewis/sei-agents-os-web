@@ -95,8 +95,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
   // Clean text content for display
   const cleanTextForDisplay = (content: string): string => {
     return content
-      // Remove entire Artifact blocks (including nested Action tags)
+      // Remove entire Artifact blocks and any partial/unclosed Artifact content
       .replace(/<Artifact[^>]*>[\s\S]*?<\/Artifact>/g, '')
+      // Remove any unclosed Artifact tags and everything after them
+      .replace(/<Artifact[^>]*>[\s\S]*$/g, '')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
   };

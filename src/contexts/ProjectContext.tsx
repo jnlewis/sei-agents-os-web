@@ -246,13 +246,13 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       await apiService.streamChat(requestData, (chunk) => {
         assistantContent += chunk;
         
-        // Update the message content progressively
+        // Update the message content progressively, but filter out Artifact content from text display
         setMessages(prev => {
           const newMessages = [...prev];
           const lastMessage = newMessages[newMessages.length - 1];
           if (lastMessage && lastMessage.role === 'assistant') {
-            const { displayContent } = parseStreamContent(assistantContent);
-            lastMessage.content = displayContent;
+            // Store the full content for action parsing, but clean it for display
+            lastMessage.content = assistantContent;
           }
           return newMessages;
         });
