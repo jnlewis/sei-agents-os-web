@@ -256,7 +256,14 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         insideArtifact: false,
         currentAction: '',
         actionBuffer: '',
-        textContent: ''
+        displayContent: '',
+        streamingActions: [] as Array<{
+          id: number;
+          type: 'file' | 'command';
+          filePath?: string;
+          contentType?: 'create' | 'replace' | 'delete';
+          command?: string;
+        }>
       };
 
       await apiService.streamChat(requestData, (chunk) => {
@@ -300,36 +307,42 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
                 if (typeMatch) {
                   const actionType = typeMatch[1];
                   
-                  if (actionType === 'file' && filePathMatch && contentTypeMatch) {
-                    // Add file action immediately
-                    setMessages(prev => {
-                      const newMessages = [...prev];
-                      const lastMessage = newMessages[newMessages.length - 1];
-                      if (lastMessage && lastMessage.role === 'assistant') {
-                        const newAction = {
-                          id: Date.now() + Math.random(),
-                          type: 'file' as const,
-                          filePath: filePathMatch[1],
-                          contentType: contentTypeMatch[1] as 'create' | 'replace' | 'delete'
-                        };
-                        lastMessage.streamingActions = [...(lastMessage.streamingActions || []), newAction];
-                      }
-                      return newMessages;
+                      // Add file action to current streaming state
+                      const newAction = {
+                        id: Date.now() + Math.random(),
+                        type: 'file' as const,
+                        filePath: filePathMatch[1],
+                        contentType: contentTypeMatch[1] as 'create' | 'replace' | 'delete'
+                      };
+                      currentStreamingState.streamingActions.push(newAction);
+                      
+                      // Immediately update the message to show the action
+                      setMessages(prev => {
+                        const newMessages = [...prev];
+                        const lastMessage = newMessages[newMessages.length - 1];
+                        if (lastMessage && lastMessage.role === 'assistant') {
+                          lastMessage.streamingActions = [...currentStreamingState.streamingActions];
+                        }
+                        return newMessages;
+                      });
                     });
-                  } else if (actionType === 'command' && commandMatch) {
-                    // Add command action immediately
-                    setMessages(prev => {
-                      const newMessages = [...prev];
-                      const lastMessage = newMessages[newMessages.length - 1];
-                      if (lastMessage && lastMessage.role === 'assistant') {
-                        const newAction = {
-                          id: Date.now() + Math.random(),
-                          type: 'command' as const,
-                          command: commandMatch[1]
-                        };
-                        lastMessage.streamingActions = [...(lastMessage.streamingActions || []), newAction];
-                      }
-                      return newMessages;
+                      // Add command action to current streaming state
+                      const newAction = {
+                        id: Date.now() + Math.random(),
+                        type: 'command' as const,
+                        command: commandMatch[1]
+                      };
+                      currentStreamingState.streamingActions.push(newAction);
+                      
+                      // Immediately update the message to show the action
+                      setMessages(prev => {
+                        const newMessages = [...prev];
+                        const lastMessage = newMessages[newMessages.length - 1];
+                        if (lastMessage && lastMessage.role === 'assistant') {
+                          lastMessage.streamingActions = [...currentStreamingState.streamingActions];
+                        }
+                        return newMessages;
+                      });
                     });
                   }
                 }
@@ -349,6 +362,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
           if (lastMessage && lastMessage.role === 'assistant') {
             lastMessage.content = currentStreamingState.textContent;
             lastMessage.fullContent = assistantContent; // Store full content for final processing
+            lastMessage.streamingActions = [...currentStreamingState.streamingActions];
           }
           return newMessages;
         });
