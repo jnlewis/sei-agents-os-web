@@ -264,89 +264,152 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         assistantContent += chunk;
         
         // Process chunk character by character for progressive streaming
-        for (let i = 0; i < chunk.length; i++) {
-          const char = chunk[i];
-          const remainingChunk = chunk.slice(i);
-          
+        let buffer = currentStreamingState.actionBuffer + chunk;
+        let i = 0;
+        
+        while (i < buffer.length) {
           if (!currentStreamingState.insideArtifact) {
-            // Check if we're entering an Artifact
-            if (remainingChunk.startsWith('<Artifact')) {
-              currentStreamingState.insideArtifact = true;
-              // Skip to end of opening tag
-              const tagEnd = remainingChunk.indexOf('>');
+            // Look for <Artifact opening tag
+            const artifactStart = buffer.indexOf('<Artifact', i);
+            if (artifactStart !== -1 && artifactStart === i) {
+              // Found artifact opening tag at current position
+              const tagEnd = buffer.indexOf('>', artifactStart);
               if (tagEnd !== -1) {
-                i += tagEnd;
+                // Complete opening tag found
+                currentStreamingState.insideArtifact = true;
+                i = tagEnd + 1;
+                continue;
+              } else {
+                // Incomplete tag, save to buffer and wait for more content
+                currentStreamingState.actionBuffer = buffer.slice(i);
+                break;
               }
+            } else if (artifactStart !== -1) {
+              // Add text before artifact to display
+              currentStreamingState.textContent += buffer.slice(i, artifactStart);
+              i = artifactStart;
               continue;
             } else {
-              // Add character to text content
-              currentStreamingState.textContent += char;
+              // No artifact tag found, add remaining text to display
+              currentStreamingState.textContent += buffer.slice(i);
+              break;
             }
           } else {
             // Inside artifact - look for Action tags or closing Artifact
-            if (remainingChunk.startsWith('</Artifact>')) {
+            const artifactEnd = buffer.indexOf('</Artifact>', i);
+            const actionStart = buffer.indexOf('<Action', i);
+            
+            if (artifactEnd !== -1 && (actionStart === -1 || artifactEnd < actionStart)) {
+              // Found closing artifact tag first
               currentStreamingState.insideArtifact = false;
-              i += '</Artifact>'.length - 1;
+              i = artifactEnd + '</Artifact>'.length;
               continue;
-            } else if (remainingChunk.startsWith('<Action')) {
-              // Parse action tag
-              const actionTagEnd = remainingChunk.indexOf('>');
-              if (actionTagEnd !== -1) {
-                const actionTag = remainingChunk.slice(0, actionTagEnd + 1);
-                const typeMatch = actionTag.match(/type="([^"]+)"/);
-                const filePathMatch = actionTag.match(/filePath="([^"]+)"/);
-                const contentTypeMatch = actionTag.match(/contentType="([^"]+)"/);
-                const commandMatch = actionTag.match(/command="([^"]+)"/);
+            } else if (actionStart !== -1 && actionStart === i) {
+              // Found action tag at current position
+              const tagEnd = buffer.indexOf('>', actionStart);
+              if (tagEnd !== -1) {
+                // Complete action tag found
+                const actionTag = buffer.slice(actionStart, tagEnd + 1);
                 
-                if (typeMatch) {
-                  const actionType = typeMatch[1];
-                  
-                  if (actionType === 'file' && filePathMatch && contentTypeMatch) {
-                    // Add file action to current streaming state
-                    const newAction = {
-                      id: Date.now() + Math.random(),
-                      type: 'file' as const,
-                      filePath: filePathMatch[1],
-                      contentType: contentTypeMatch[1] as 'create' | 'replace' | 'delete'
-                    };
-                    currentStreamingState.streamingActions.push(newAction);
+                // Parse action attributes using string methods
+                const typeStart = actionTag.indexOf('type="');
+                if (typeStart !== -1) {
+                  const typeValueStart = typeStart + 'type="'.length;
+                  const typeValueEnd = actionTag.indexOf('"', typeValueStart);
+                  if (typeValueEnd !== -1) {
+                    const actionType = actionTag.slice(typeValueStart, typeValueEnd);
                     
-                    // Immediately update the message to show the action
-                    setMessages(prev => {
-                      const newMessages = [...prev];
-                      const lastMessage = newMessages[newMessages.length - 1];
-                      if (lastMessage && lastMessage.role === 'assistant') {
-                        lastMessage.streamingActions = [...currentStreamingState.streamingActions];
+                    if (actionType === 'file') {
+                      // Parse file action attributes
+                      const filePathStart = actionTag.indexOf('filePath="');
+                      const contentTypeStart = actionTag.indexOf('contentType="');
+                      
+                      if (filePathStart !== -1 && contentTypeStart !== -1) {
+                        const filePathValueStart = filePathStart + 'filePath="'.length;
+                        const filePathValueEnd = actionTag.indexOf('"', filePathValueStart);
+                        const contentTypeValueStart = contentTypeStart + 'contentType="'.length;
+                        const contentTypeValueEnd = actionTag.indexOf('"', contentTypeValueStart);
+                        
+                        if (filePathValueEnd !== -1 && contentTypeValueEnd !== -1) {
+                          const filePath = actionTag.slice(filePathValueStart, filePathValueEnd);
+                          const contentType = actionTag.slice(contentTypeValueStart, contentTypeValueEnd);
+                          
+                          const newAction = {
+                            id: Date.now() + Math.random(),
+                            type: 'file' as const,
+                            filePath: filePath,
+                            contentType: contentType as 'create' | 'replace' | 'delete'
+                          };
+                          currentStreamingState.streamingActions.push(newAction);
+                          
+                          // Immediately update the message to show the action
+                          setMessages(prev => {
+                            const newMessages = [...prev];
+                            const lastMessage = newMessages[newMessages.length - 1];
+                            if (lastMessage && lastMessage.role === 'assistant') {
+                              lastMessage.streamingActions = [...currentStreamingState.streamingActions];
+                            }
+                            return newMessages;
+                          });
+                        }
                       }
-                      return newMessages;
-                    });
-                  } else if (actionType === 'command' && commandMatch) {
-                    // Add command action to current streaming state
-                    const newAction = {
-                      id: Date.now() + Math.random(),
-                      type: 'command' as const,
-                      command: commandMatch[1]
-                    };
-                    currentStreamingState.streamingActions.push(newAction);
-                    
-                    // Immediately update the message to show the action
-                    setMessages(prev => {
-                      const newMessages = [...prev];
-                      const lastMessage = newMessages[newMessages.length - 1];
-                      if (lastMessage && lastMessage.role === 'assistant') {
-                        lastMessage.streamingActions = [...currentStreamingState.streamingActions];
+                    } else if (actionType === 'command') {
+                      // Parse command action attributes
+                      const commandStart = actionTag.indexOf('command="');
+                      if (commandStart !== -1) {
+                        const commandValueStart = commandStart + 'command="'.length;
+                        const commandValueEnd = actionTag.indexOf('"', commandValueStart);
+                        
+                        if (commandValueEnd !== -1) {
+                          const command = actionTag.slice(commandValueStart, commandValueEnd);
+                          
+                          const newAction = {
+                            id: Date.now() + Math.random(),
+                            type: 'command' as const,
+                            command: command
+                          };
+                          currentStreamingState.streamingActions.push(newAction);
+                          
+                          // Immediately update the message to show the action
+                          setMessages(prev => {
+                            const newMessages = [...prev];
+                            const lastMessage = newMessages[newMessages.length - 1];
+                            if (lastMessage && lastMessage.role === 'assistant') {
+                              lastMessage.streamingActions = [...currentStreamingState.streamingActions];
+                            }
+                            return newMessages;
+                          });
+                        }
                       }
-                      return newMessages;
-                    });
+                    }
                   }
                 }
                 
-                i += actionTagEnd;
+                i = tagEnd + 1;
                 continue;
+              } else {
+                // Incomplete action tag, save to buffer and wait for more content
+                currentStreamingState.actionBuffer = buffer.slice(i);
+                break;
               }
+            } else if (actionStart !== -1) {
+              // Skip to action tag
+              i = actionStart;
+              continue;
+            } else if (artifactEnd === -1) {
+              // No closing artifact tag found yet, save remaining content to buffer
+              currentStreamingState.actionBuffer = buffer.slice(i);
+              break;
+            } else {
+              // Skip character inside artifact
+              i++;
             }
-            // Skip characters inside artifact (except for action parsing above)
           }
+        }
+        
+        // Clear buffer if we processed everything
+        if (i >= buffer.length) {
+          currentStreamingState.actionBuffer = '';
         }
         
         // Update message with current text content
