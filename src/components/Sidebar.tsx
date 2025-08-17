@@ -56,7 +56,12 @@ export function Sidebar({ width }: SidebarProps) {
       <div className="p-4 border-b border-gray-700">
         <div className="flex items-center gap-2 text-white">
           <MessageSquare size={20} />
-          <h1 className="font-semibold">SEI Agents OS</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="font-semibold">SEI Agents OS</h1>
+            <span className="px-2 py-0.5 bg-yellow-600/20 border border-yellow-500/30 rounded-full text-yellow-400 text-xs font-medium">
+              Early Preview
+            </span>
+          </div>
         </div>
       </div>
 
