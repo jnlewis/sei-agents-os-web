@@ -75,6 +75,36 @@ export function DeploymentPanel() {
             </div>
           </div>
 
+          {/* Environment Configuration */}
+          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+            <h3 className="text-white font-medium mb-4">Environment Configuration</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-400 text-sm mb-2">SEI Network</label>
+                <select 
+                  disabled
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-300 cursor-not-allowed"
+                >
+                  <option>SEI Testnet</option>
+                  <option>SEI Mainnet</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-gray-400 text-sm mb-2">Deployment Environment</label>
+                <select 
+                  disabled
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-300 cursor-not-allowed"
+                >
+                  <option>Production</option>
+                  <option>Staging</option>
+                  <option>Development</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
           {/* Deployment Options */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Web App Deployment */}
@@ -96,11 +126,7 @@ export function DeploymentPanel() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Platform:</span>
-                  <span className="text-gray-300">Vercel/Netlify</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Build Time:</span>
-                  <span className="text-gray-300">~2 minutes</span>
+                  <span className="text-gray-300">SEI Agents OS (AWS)</span>
                 </div>
               </div>
               
@@ -134,10 +160,6 @@ export function DeploymentPanel() {
                   <span className="text-gray-400">Network:</span>
                   <span className="text-gray-300">SEI Testnet</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Gas Estimate:</span>
-                  <span className="text-gray-300">~0.01 SEI</span>
-                </div>
               </div>
               
               <button
@@ -168,11 +190,7 @@ export function DeploymentPanel() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Platform:</span>
-                  <span className="text-gray-500">SEI Agents Cloud</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Runtime:</span>
-                  <span className="text-gray-500">24/7 Active</span>
+                  <span className="text-gray-500">SEI Agents OS (AWS)</span>
                 </div>
               </div>
               
@@ -200,35 +218,6 @@ export function DeploymentPanel() {
             </div>
           </div>
 
-          {/* Environment Configuration */}
-          <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <h3 className="text-white font-medium mb-4">Environment Configuration</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-gray-400 text-sm mb-2">SEI Network</label>
-                <select 
-                  disabled
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-300 cursor-not-allowed"
-                >
-                  <option>SEI Testnet</option>
-                  <option>SEI Mainnet</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-gray-400 text-sm mb-2">Deployment Environment</label>
-                <select 
-                  disabled
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-300 cursor-not-allowed"
-                >
-                  <option>Production</option>
-                  <option>Staging</option>
-                  <option>Development</option>
-                </select>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
