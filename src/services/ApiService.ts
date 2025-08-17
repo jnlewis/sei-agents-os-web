@@ -2,8 +2,8 @@ import { Message, ProjectFile } from '../types';
 
 export class ApiService {
   private readonly API_KEY = 'demoApiKey';
-  private readonly TEMPLATE_URL = 'https://npnc7aykeee5uueftrgnupxkiu0vjahx.lambda-url.us-east-1.on.aws';
-  private readonly STREAMING_URL = 'https://q2jgpxpl7y7tvn7nkfem5ro7hy0uigkb.lambda-url.us-east-1.on.aws';
+  private readonly TEMPLATE_URL = 'https://ip6c7bfrslspyjyuke6n7fo5sq0ctelb.lambda-url.us-east-1.on.aws/';
+  private readonly STREAMING_URL = 'https://3e7vnnbximfzwowqpxnsww3tbu0zjkaq.lambda-url.us-east-1.on.aws/';
 
   async getTemplate(): Promise<ProjectFile[]> {
     try {
