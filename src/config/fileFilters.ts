@@ -5,6 +5,7 @@ export const FILE_FILTER_CONFIG = {
     'node_modules',
     'dist',
     'build',
+    'artifacts',
     '.git',
     '.next',
     'coverage',
