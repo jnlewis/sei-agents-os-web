@@ -16,7 +16,7 @@ export function FileExplorer() {
           <div key={fullPath}>
             <div
               className={`flex items-center gap-2 px-2 py-1 hover:bg-gray-700 cursor-pointer text-sm ${
-                isSelected ? 'bg-blue-600 text-white' : 'text-gray-300'
+                isSelected ? 'bg-purple-600 text-white' : 'text-gray-300'
               }`}
               onClick={() => toggleDir(fullPath)}
             >
