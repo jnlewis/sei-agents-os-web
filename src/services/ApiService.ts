@@ -1,4 +1,5 @@
 import { Message, ProjectFile } from '../types';
+import { filterProjectFiles, shouldExcludeFile } from '../config/fileFilters';
 
 export class ApiService {
   private readonly API_KEY = 'demoApiKey';
@@ -62,13 +63,68 @@ export class ApiService {
     onChunk: (chunk: string) => void
   ): Promise<void> {
     try {
+      // Apply file filtering before sending to API
+      let filteredRequestData = { ...requestData };
+      
+      if (requestData.projectFiles?.visible) {
+        const originalCount = requestData.projectFiles.visible.length;
+        
+        // First layer: Apply central filtering
+        const filteredFiles = filterProjectFiles(requestData.projectFiles.visible);
+        
+        // Second layer: Double-check for critical exclusions
+        const doubleFilteredFiles = filteredFiles.filter(file => {
+          const shouldExclude = shouldExcludeFile(file.path);
+          if (shouldExclude) {
+            console.warn(`CRITICAL: File ${file.path} was caught by second filter layer!`);
+          }
+          return !shouldExclude;
+        });
+        
+        // Third layer: Explicit check for node_modules, dist, build in app/ and contracts/
+        const finalFilteredFiles = doubleFilteredFiles.filter(file => {
+          const path = file.path.toLowerCase();
+          const criticalPaths = [
+            'app/node_modules',
+            'app/dist',
+            'app/build',
+            'contracts/node_modules',
+            'contracts/dist',
+            'contracts/build'
+          ];
+          
+          for (const criticalPath of criticalPaths) {
+            if (path.startsWith(criticalPath) || path.includes(`/${criticalPath}/`)) {
+              console.error(`BLOCKED: Attempted to send critical path ${file.path}`);
+              return false;
+            }
+          }
+          return true;
+        });
+        
+        filteredRequestData.projectFiles = {
+          ...requestData.projectFiles,
+          visible: finalFilteredFiles
+        };
+        
+        console.log(`File filtering summary: ${originalCount} -> ${finalFilteredFiles.length} files`);
+        
+        // Log what types of files are being sent for debugging
+        const fileTypes = finalFilteredFiles.reduce((acc, file) => {
+          const ext = file.path.split('.').pop() || 'no-ext';
+          acc[ext] = (acc[ext] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        console.log('File types being sent:', fileTypes);
+      }
+
       const response = await fetch(this.STREAMING_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'seiagents-api-key': this.API_KEY,
         },
-        body: JSON.stringify(requestData),
+        body: JSON.stringify(filteredRequestData),
       });
 
       if (!response.ok) {

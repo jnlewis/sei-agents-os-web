@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useWebContainer } from './WebContainerContext';
 import { Message, ProjectFile } from '../types';
 import { ApiService } from '../services/ApiService';
+import { filterProjectFiles } from '../config/fileFilters';
 import { useEffect } from 'react';
 
 interface ProjectContextType {
