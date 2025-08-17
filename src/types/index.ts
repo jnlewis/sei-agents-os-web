@@ -9,6 +9,7 @@ export interface Message {
     filePath?: string;
     contentType?: 'create' | 'replace' | 'delete';
     command?: string;
+    targetDir?: string;
     isCompleted?: boolean;
   }>;
 }

@@ -15,6 +15,7 @@ interface MessageSegment {
   filePath?: string;
   contentType?: 'create' | 'replace' | 'delete';
   command?: string;
+  targetDir?: string;
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
@@ -27,7 +28,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
     // Find all Artifact blocks containing Action tags
     const artifactRegex = /<Artifact[^>]*>([\s\S]*?)<\/Artifact>/g;
     // Find Action tags within artifacts
-    const actionRegex = /<Action\s+type="(file|command)"(?:\s+filePath="([^"]+)"\s+contentType="([^"]+)"|(?:\s+command="([^"]+)"))[^>]*>([\s\S]*?)<\/Action>/g;
+    const actionRegex = /<Action\s+type="(file|command)"(?:\s+filePath="([^"]+)"\s+contentType="([^"]+)"|(?:\s+targetDir="([^"]+)")?\s+command="([^"]+)")(?:[^>]*)>([\s\S]*?)<\/Action>/g;
     
     let lastIndex = 0;
     let artifactMatch;
@@ -51,7 +52,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
       actionRegex.lastIndex = 0; // Reset regex for new artifact content
       
       while ((actionMatch = actionRegex.exec(artifactContent)) !== null) {
-        const [, actionType, filePath, contentType, command] = actionMatch;
+        const [, actionType, filePath, contentType, targetDir, command] = actionMatch;
         
         if (actionType === 'file' && filePath && contentType) {
           segments.push({
@@ -62,7 +63,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
         } else if (actionType === 'command' && command) {
           segments.push({
             type: 'command-action',
-            command
+            command,
+            targetDir: targetDir || '/app' // Default to /app if not specified
           });
         }
       }
@@ -130,7 +132,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
                   />
                 )}
                 {action.type === 'command' && action.command && (
-                  <ChatMessageCommandAction command={action.command} />
+                  <ChatMessageCommandAction 
+                    command={action.command} 
+                    targetDir={action.targetDir}
+                  />
                 )}
               </div>
             ))}
@@ -148,7 +153,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
                   />
                 )}
                 {segment.type === 'command-action' && segment.command && (
-                  <ChatMessageCommandAction command={segment.command} />
+                  <ChatMessageCommandAction 
+                    command={segment.command} 
+                    targetDir={segment.targetDir}
+                  />
                 )}
               </div>
             ))}

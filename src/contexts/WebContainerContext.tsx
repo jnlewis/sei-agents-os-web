@@ -30,16 +30,20 @@ export function WebContainerProvider({ children }: { children: ReactNode }) {
     if (!webcontainer || isDisabled) return;
     
     try {
-      // Kill existing processes
-      const processes = await webcontainer.spawn('pkill', ['-f', 'vite']);
+      // Kill existing processes in the app directory
+      const processes = await webcontainer.spawn('pkill', ['-f', 'vite'], {
+        cwd: '/app'
+      });
       await processes.exit;
     } catch (error) {
       // Ignore errors when killing processes
     }
     
     try {
-      // Restart dev server
-      const devProcess = await webcontainer.spawn('npm', ['run', 'dev']);
+      // Restart dev server in the app directory
+      const devProcess = await webcontainer.spawn('npm', ['run', 'dev'], {
+        cwd: '/app'
+      });
       // Don't await the process as it runs continuously
     } catch (error) {
       console.error('Failed to restart dev server:', error);
@@ -55,7 +59,7 @@ export function WebContainerProvider({ children }: { children: ReactNode }) {
         const instance = await WebContainer.boot();
         setWebcontainer(instance);
         
-        // Listen for server ready events
+        // Listen for server ready events - only from the app directory
         instance.on('server-ready', (port, url) => {
           if (!isDisabled) {
             setPreviewUrl(url);

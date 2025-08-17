@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Terminal, Play, CheckCircle, XCircle, Loader } from 'lucide-react';
+import { Terminal, Play, CheckCircle, XCircle, Loader, Folder } from 'lucide-react';
 import { useWebContainer } from '../contexts/WebContainerContext';
 
 interface ChatMessageCommandActionProps {
   command: string;
+  targetDir?: string;
   onComplete?: (success: boolean, output: string) => void;
 }
 
-export function ChatMessageCommandAction({ command, onComplete }: ChatMessageCommandActionProps) {
+export function ChatMessageCommandAction({ command, targetDir = '/app', onComplete }: ChatMessageCommandActionProps) {
   const { webcontainer } = useWebContainer();
   const [status, setStatus] = useState<'pending' | 'running' | 'success' | 'error'>('pending');
   const [output, setOutput] = useState<string>('');
@@ -30,7 +31,12 @@ export function ChatMessageCommandAction({ command, onComplete }: ChatMessageCom
       const cmd = parts[0];
       const args = parts.slice(1);
 
-      const process = await webcontainer.spawn(cmd, args);
+      // Convert targetDir to actual directory path (remove leading slash)
+      const workingDir = targetDir.replace(/^\//, '');
+
+      const process = await webcontainer.spawn(cmd, args, {
+        cwd: `/${workingDir}`
+      });
       
       let commandOutput = '';
 
@@ -121,11 +127,17 @@ export function ChatMessageCommandAction({ command, onComplete }: ChatMessageCom
       >
         <Terminal size={12} />
         <IconComponent size={12} className={`${config.iconColor} ${config.animate}`} />
+        <Folder size={12} className="text-gray-400" />
+        <span className="text-gray-400">{targetDir}</span>
         <code className="font-mono">{command}</code>
       </div>
       
       {output && (
-        <div className="mt-2 p-2 bg-gray-800 rounded text-xs font-mono text-gray-300 max-h-32 overflow-y-auto">
+        <div className="mt-2 p-3 bg-gray-800 rounded-lg text-xs font-mono text-gray-300 max-h-48 overflow-y-auto">
+          <div className="flex items-center gap-2 mb-2 text-gray-400 border-b border-gray-700 pb-2">
+            <Terminal size={12} />
+            <span>Command Output ({targetDir})</span>
+          </div>
           <pre className="whitespace-pre-wrap">{output}</pre>
         </div>
       )}

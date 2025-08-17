@@ -102,7 +102,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       
       if (webcontainer) {
         console.log('Setting up WebContainer file structure...');
-        // Create file structure for WebContainer
+        // Create file structure for WebContainer - load ALL files (agents/, app/, contracts/)
         const fileTree: { [key: string]: any } = {};
         
         templateFiles.forEach(file => {
@@ -132,19 +132,28 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         await webcontainer.mount(fileTree);
         console.log('Files mounted to WebContainer');
         
-        // Start dev server
-        console.log('Installing dependencies...');
-        const installProcess = await webcontainer.spawn('npm', ['install']);
-        await installProcess.exit;
-        console.log('Dependencies installed');
+        // Check if app folder has package.json and install dependencies
+        const appFiles = templateFiles.filter(f => f.path.startsWith('app/'));
+        const hasAppPackageJson = appFiles.some(f => f.path === 'app/package.json');
         
-        console.log('Starting dev server...');
-        const devProcess = await webcontainer.spawn('npm', ['run', 'dev']);
-        console.log('Dev server started');
+        if (hasAppPackageJson) {
+          console.log('Installing dependencies in /app folder...');
+          const installProcess = await webcontainer.spawn('npm', ['install'], {
+            cwd: '/app'
+          });
+          await installProcess.exit;
+          console.log('Dependencies installed in /app');
+          
+          console.log('Starting dev server in /app folder...');
+          const devProcess = await webcontainer.spawn('npm', ['run', 'dev'], {
+            cwd: '/app'
+          });
+          console.log('Dev server started in /app');
+        }
       }
       
       setFiles(buildFileTree(templateFiles));
-      setExpandedDirs(new Set(['src']));
+      setExpandedDirs(new Set(['app', 'contracts'])); // Auto-expand main folders
       console.log('Template loading completed successfully');
       setIsInitialized(true);
     } catch (error) {
@@ -165,13 +174,14 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       content?: string; 
       contentType?: string;
       command?: string;
+      targetDir?: string;
     }> = [];
     let displayContent = '';
 
     // Parse Artifact blocks containing Action tags
     const artifactRegex = /<Artifact[^>]*>([\s\S]*?)<\/Artifact>/g;
     const fileActionRegex = /<Action\s+type="file"\s+filePath="([^"]+)"\s+contentType="([^"]+)"[^>]*>([\s\S]*?)<\/Action>/g;
-    const commandActionRegex = /<Action\s+type="command"\s+command="([^"]+)"[^>]*>(?:[\s\S]*?<\/Action>)?/g;
+    const commandActionRegex = /<Action\s+type="command"(?:\s+targetDir="([^"]+)")?\s+command="([^"]+)"[^>]*>(?:[\s\S]*?<\/Action>)?/g;
     
     let artifactMatch;
 
@@ -199,11 +209,12 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       // Process command actions within this artifact
       let commandMatch;
       while ((commandMatch = commandActionRegex.exec(artifactContent)) !== null) {
-        const [, command] = commandMatch;
+        const [, targetDir, command] = commandMatch;
         
         actions.push({
           type: 'command',
-          command: command
+          command: command,
+          targetDir: targetDir || '/app' // Default to /app if not specified
         });
       }
     }
@@ -357,9 +368,20 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
                     } else if (actionType === 'command') {
                       // Parse command action attributes
                       const commandStart = actionTag.indexOf('command="');
+                      const targetDirStart = actionTag.indexOf('targetDir="');
+                      
                       if (commandStart !== -1) {
                         const commandValueStart = commandStart + 'command="'.length;
                         const commandValueEnd = actionTag.indexOf('"', commandValueStart);
+                        
+                        let targetDir = '/app'; // Default
+                        if (targetDirStart !== -1) {
+                          const targetDirValueStart = targetDirStart + 'targetDir="'.length;
+                          const targetDirValueEnd = actionTag.indexOf('"', targetDirValueStart);
+                          if (targetDirValueEnd !== -1) {
+                            targetDir = actionTag.slice(targetDirValueStart, targetDirValueEnd);
+                          }
+                        }
                         
                         if (commandValueEnd !== -1) {
                           const command = actionTag.slice(commandValueStart, commandValueEnd);
@@ -367,7 +389,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
                           const newAction = {
                             id: Date.now() + Math.random(),
                             type: 'command' as const,
-                            command: command
+                            command: command,
+                            targetDir: targetDir
                           };
                           currentStreamingState.streamingActions.push(newAction);
                           
@@ -508,16 +531,21 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             pendingFileUpdates.delete(action.path);
           }
         } else if (action.type === 'command' && action.command && webcontainer) {
-          // Execute command in WebContainer
+          // Execute command in WebContainer with targetDir
           try {
             const parts = action.command.trim().split(' ');
             const cmd = parts[0];
             const args = parts.slice(1);
             
-            const process = await webcontainer.spawn(cmd, args);
+            // Convert targetDir to actual directory path (remove leading slash)
+            const workingDir = action.targetDir?.replace(/^\//, '') || 'app';
+            
+            const process = await webcontainer.spawn(cmd, args, {
+              cwd: `/${workingDir}`
+            });
             await process.exit;
           } catch (error) {
-            console.error('Failed to execute command:', action.command, error);
+            console.error('Failed to execute command:', action.command, 'in', action.targetDir, error);
           }
         }
       }
