@@ -145,22 +145,27 @@ export function LandingPage() {
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-6">
                 <Bot size={24} className="text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-4">Automated Agents</h3>
+              <div className="flex items-center gap-3 mb-4">
+                <h3 className="text-2xl font-bold text-white">Automated Agents</h3>
+                <span className="px-2 py-1 bg-yellow-600/20 border border-yellow-500/30 rounded-full text-yellow-400 text-xs font-medium">
+                  Coming Soon
+                </span>
+              </div>
               <p className="text-gray-400 mb-6 leading-relaxed">
                 Intelligent agents that monitor, execute, and optimize your DeFi strategies. 
                 From arbitrage to yield farming, automate complex blockchain interactions.
               </p>
               <ul className="space-y-2">
                 <li className="flex items-center gap-2 text-gray-300">
-                  <CheckCircle size={16} className="text-green-400" />
+                  <CheckCircle size={16} className="text-gray-500" />
                   Strategy Automation
                 </li>
                 <li className="flex items-center gap-2 text-gray-300">
-                  <CheckCircle size={16} className="text-green-400" />
+                  <CheckCircle size={16} className="text-gray-500" />
                   Risk Management
                 </li>
                 <li className="flex items-center gap-2 text-gray-300">
-                  <CheckCircle size={16} className="text-green-400" />
+                  <CheckCircle size={16} className="text-gray-500" />
                   24/7 Monitoring
                 </li>
               </ul>
