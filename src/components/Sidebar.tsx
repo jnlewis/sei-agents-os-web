@@ -17,7 +17,7 @@ const EXAMPLE_PROMPTS = [
   {
     title: "Staking Dashboard",
     description: "Token staking interface",
-    prompt: "Create a staking dashboard on SEI where users can stake tokens and view their rewards. Include stake, unstake, and claim rewards functionality."
+    prompt: "Create a simple staking dashboard where users can stake tokens and view their rewards. Include stake, unstake, and claim rewards functionality."
   }
 ];
 
