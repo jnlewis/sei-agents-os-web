@@ -5,15 +5,25 @@ import { useProject } from '../contexts/ProjectContext';
 
 const EXAMPLE_PROMPTS = [
   {
+    title: "Crowdsale/Token Faucet",
+    description: "Basic Crowdsale or Token Faucet app",
+    prompt: "Create a faucet app with a landing page where anyone can mint 10 free tokens by entering their address and clicking a button. Users can also connect their wallet and see their balance in the UI."
+  },
+  {
+    title: "NFT Minter",
+    description: "Basic NFT minting app",
+    prompt: "Make an NFT minter app. The smart contract should let users mint NFTs with a token URI. The website should have a button to mint an NFT and show the last minted token ID."
+  },
+  {
     title: "Token Swap DApp",
     description: "Simple token swapping interface",
     prompt: "Create a simple token swap DApp with a clean interface where users can swap between two tokens. Include wallet connection and basic swap functionality."
   },
-  {
-    title: "NFT Minting App",
-    description: "Basic NFT minting interface",
-    prompt: "Build an NFT minting app where users can mint simple NFTs. Include a minting form, wallet connection, and display of minted NFTs. You may use placeholders instead of actual images."
-  },
+  // {
+  //   title: "NFT Minting App",
+  //   description: "Basic NFT minting interface",
+  //   prompt: "Build an NFT minting app where users can mint simple NFTs. Include a minting form, wallet connection, and display of minted NFTs. You may use placeholders instead of actual images."
+  // },
   {
     title: "Staking Dashboard",
     description: "Token staking interface",
