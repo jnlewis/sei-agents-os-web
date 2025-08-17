@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Code, Eye } from 'lucide-react';
+import { Code, Eye, FileCode } from 'lucide-react';
 import { FileExplorer } from './FileExplorer';
 import { CodeEditor } from './CodeEditor';
 import { PreviewPanel } from './PreviewPanel';
+import { ContractsPanel } from './ContractsPanel';
 
 export function MainPanel() {
-  const [activeTab, setActiveTab] = useState<'code' | 'preview'>('preview');
+  const [activeTab, setActiveTab] = useState<'code' | 'preview' | 'contracts'>('preview');
 
   return (
     <div className="h-full bg-gray-900 flex flex-col">
@@ -33,6 +34,17 @@ export function MainPanel() {
             <Eye size={16} />
             Preview
           </button>
+          <button
+            onClick={() => setActiveTab('contracts')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'contracts'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700'
+            }`}
+          >
+            <FileCode size={16} />
+            Contracts
+          </button>
         </div>
       </div>
 
@@ -46,6 +58,8 @@ export function MainPanel() {
               <CodeEditor />
             </div>
           </div>
+        ) : activeTab === 'contracts' ? (
+          <ContractsPanel />
         ) : (
           <PreviewPanel />
         )}

@@ -28,7 +28,7 @@ export function Sidebar({ width }: SidebarProps) {
       <div className="p-4 border-b border-gray-700">
         <div className="flex items-center gap-2 text-white">
           <MessageSquare size={20} />
-          <h1 className="font-semibold">SEI Agents OS</h1>
+          <h1 className="font-semibold">SEI Agents OS (Preview)</h1>
         </div>
       </div>
 
