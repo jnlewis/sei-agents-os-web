@@ -1,63 +1,17 @@
 import React, { useState } from 'react';
-import { Rocket, Globe, Bot, FileCode, AlertCircle, Download, ChevronDown } from 'lucide-react';
+import { Rocket, Globe, Bot, FileCode, AlertCircle } from 'lucide-react';
 
 export function DeploymentPanel() {
-  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
-
-  const handleDownload = (type: 'all' | 'app' | 'contracts') => {
-    // This would implement the actual download functionality
-    console.log(`Downloading ${type} source code...`);
-    setShowDownloadMenu(false);
-    // TODO: Implement actual zip download
-  };
-
   return (
     <div className="h-full bg-gray-900 flex flex-col">
       {/* Header */}
-      <div className="flex-shrink-0 bg-gray-800 px-4 py-3 border-b border-gray-700 flex items-center justify-between">
+      <div className="flex-shrink-0 bg-gray-800 px-4 py-3 border-b border-gray-700">
         <div className="flex items-center gap-3">
           <Rocket size={20} className="text-purple-400" />
           <div>
             <h2 className="text-white font-medium">Deployment Center</h2>
             <p className="text-gray-400 text-xs">Deploy your applications to production</p>
           </div>
-        </div>
-        
-        {/* Download Source Code Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setShowDownloadMenu(!showDownloadMenu)}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
-          >
-            <Download size={16} />
-            Download Source
-            <ChevronDown size={14} className={`transition-transform ${showDownloadMenu ? 'rotate-180' : ''}`} />
-          </button>
-          
-          {showDownloadMenu && (
-            <div className="absolute right-0 top-full mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-10">
-              <div className="py-2">
-                <button
-                  onClick={() => handleDownload('all')}
-                  className="w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
-                >
-                  Complete Project (.zip)
-                </button>
-                <button
-                  onClick={() => handleDownload('app')}
-                  className="w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
-                >
-                  Web App Only (.zip)
-                </button>
-                <button
-                  onClick={() => handleDownload('contracts')}
-                  className="w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
-                >
-                  Contracts Only (.zip)
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
