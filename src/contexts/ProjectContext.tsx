@@ -17,6 +17,7 @@ interface ProjectContextType {
   toggleDir: (path: string) => void;
   getFileContent: (path: string) => string;
   updateFile: (path: string, content: string) => void;
+  getProjectFiles: () => ProjectFile[];
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -628,7 +629,13 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       setSelectedFile,
       toggleDir,
       getFileContent,
-      updateFile
+      updateFile,
+      getProjectFiles
+    });
+  };
+
+  const getProjectFiles = (): ProjectFile[] => {
+    return projectFiles;
     }}>
       {children}
     </ProjectContext.Provider>

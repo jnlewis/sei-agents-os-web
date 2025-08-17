@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Code, Eye, FileCode, Rocket, Download, ChevronDown } from 'lucide-react';
+import { useProject } from '../contexts/ProjectContext';
+import { DownloadService } from '../services/DownloadService';
 import { FileExplorer } from './FileExplorer';
 import { CodeEditor } from './CodeEditor';
 import { PreviewPanel } from './PreviewPanel';
@@ -9,12 +11,23 @@ import { DeploymentPanel } from './DeploymentPanel';
 export function MainPanel() {
   const [activeTab, setActiveTab] = useState<'code' | 'preview' | 'contracts' | 'deployment'>('preview');
   const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const { getProjectFiles } = useProject();
 
-  const handleDownload = (type: 'all' | 'app' | 'contracts') => {
-    // This would implement the actual download functionality
-    console.log(`Downloading ${type} source code...`);
+  const handleDownload = async (type: 'all' | 'app' | 'contracts') => {
     setShowDownloadMenu(false);
-    // TODO: Implement actual zip download
+    setIsDownloading(true);
+    
+    try {
+      const projectFiles = getProjectFiles();
+      await DownloadService.downloadProjectFiles(projectFiles, type, 'sei-agents-project');
+    } catch (error) {
+      console.error('Download failed:', error);
+      // You could add a toast notification here
+      alert('Download failed. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -72,10 +85,11 @@ export function MainPanel() {
           <div className="relative">
             <button
               onClick={() => setShowDownloadMenu(!showDownloadMenu)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors text-sm"
+              disabled={isDownloading}
+              className="flex items-center gap-2 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Download size={14} />
-              Download Source
+              <Download size={14} className={isDownloading ? 'animate-pulse' : ''} />
+              {isDownloading ? 'Preparing...' : 'Download Source'}
               <ChevronDown size={12} className={`transition-transform ${showDownloadMenu ? 'rotate-180' : ''}`} />
             </button>
             
@@ -84,19 +98,22 @@ export function MainPanel() {
                 <div className="py-2">
                   <button
                     onClick={() => handleDownload('all')}
-                    className="w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-700 hover:text-white transition-colors text-sm"
+                    disabled={isDownloading}
+                    className="w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-700 hover:text-white transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Complete Project (.zip)
                   </button>
                   <button
                     onClick={() => handleDownload('app')}
-                    className="w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-700 hover:text-white transition-colors text-sm"
+                    disabled={isDownloading}
+                    className="w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-700 hover:text-white transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Web App Only (.zip)
                   </button>
                   <button
                     onClick={() => handleDownload('contracts')}
-                    className="w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-700 hover:text-white transition-colors text-sm"
+                    disabled={isDownloading}
+                    className="w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-700 hover:text-white transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Contracts Only (.zip)
                   </button>
