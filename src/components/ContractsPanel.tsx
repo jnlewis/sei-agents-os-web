@@ -145,7 +145,7 @@ export function ContractsPanel() {
             </div>
           )}
         </div>
-      }
+      </div>
 
 
 
@@ -267,7 +267,6 @@ export function ContractsPanel() {
                                     </div>
                                   </div>
                                 )}
-                                </div>
                               </div>
                             ))}
                           {selectedContractArtifact.abi.filter(item => item.type === 'function').length === 0 && (
@@ -328,7 +327,6 @@ export function ContractsPanel() {
                                   ) : (
                                     <div className="text-xs text-gray-400">No parameters</div>
                                   )}
-                                  </div>
                                 </div>
                               ))}
                           </div>
