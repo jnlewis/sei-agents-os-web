@@ -16,7 +16,7 @@ interface ContractArtifact {
 }
 
 export function ContractsPanel() {
-  const { getFileContent } = useProject();
+  const { getFileContent, getProjectFiles } = useProject();
   const [contractFiles, setContractFiles] = useState<ContractFile[]>([]);
   const [contractArtifacts, setContractArtifacts] = useState<ContractArtifact[]>([]);
   const [selectedContract, setSelectedContract] = useState<string | null>(null);
@@ -27,18 +27,21 @@ export function ContractsPanel() {
   }, []);
 
   const loadContractFiles = () => {
-    // Load contract source files from /contracts/src
+    // Load all .sol files from /contracts/src
     const files: ContractFile[] = [];
+    const projectFiles = getProjectFiles();
     
-    // Try to load SampleToken.sol
-    const sampleTokenContent = getFileContent('contracts/src/SampleToken.sol');
-    if (sampleTokenContent) {
-      files.push({
-        name: 'SampleToken.sol',
-        path: 'contracts/src/SampleToken.sol',
-        content: sampleTokenContent
+    // Find all .sol files in contracts/src
+    projectFiles
+      .filter(file => file.path.startsWith('contracts/src/') && file.path.endsWith('.sol'))
+      .forEach(file => {
+        const fileName = file.path.split('/').pop() || file.path;
+        files.push({
+          name: fileName,
+          path: file.path,
+          content: file.content
+        });
       });
-    }
 
     setContractFiles(files);
     if (files.length > 0 && !selectedContract) {
@@ -47,30 +50,52 @@ export function ContractsPanel() {
   };
 
   const loadContractArtifacts = () => {
-    // Load contract artifacts from /contracts/artifacts
+    // Load all contract artifacts from /contracts/artifacts
     const artifacts: ContractArtifact[] = [];
+    const projectFiles = getProjectFiles();
     
-    // Try to load SampleToken.json artifact
-    const sampleTokenArtifact = getFileContent('contracts/artifacts/src/SampleToken.sol/SampleToken.json');
-    if (sampleTokenArtifact) {
-      try {
-        const parsed = JSON.parse(sampleTokenArtifact);
-        artifacts.push({
-          name: 'SampleToken',
-          path: 'contracts/artifacts/src/SampleToken.sol/SampleToken.json',
-          abi: parsed.abi || [],
-          bytecode: parsed.bytecode || ''
-        });
-      } catch (error) {
-        console.error('Failed to parse contract artifact:', error);
-      }
-    }
+    // Find all .json files in contracts/artifacts
+    projectFiles
+      .filter(file => 
+        file.path.startsWith('contracts/artifacts/') && 
+        file.path.endsWith('.json') &&
+        !file.path.includes('.dbg.json') // Exclude debug files
+      )
+      .forEach(file => {
+        try {
+          const parsed = JSON.parse(file.content);
+          const contractName = file.path.split('/').pop()?.replace('.json', '') || '';
+          
+          artifacts.push({
+            name: contractName,
+            path: file.path,
+            abi: parsed.abi || [],
+            bytecode: parsed.bytecode || ''
+          });
+        } catch (error) {
+          console.error('Failed to parse contract artifact:', file.path, error);
+        }
+      });
 
     setContractArtifacts(artifacts);
   };
 
+  // Refresh data when project files change
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadContractFiles();
+      loadContractArtifacts();
+    }, 2000); // Check every 2 seconds for updates
+
+    return () => clearInterval(interval);
+  }, []);
+
   const selectedContractFile = contractFiles.find(f => f.name === selectedContract);
-  const selectedContractArtifact = contractArtifacts.find(a => a.name === selectedContract?.replace('.sol', ''));
+  const selectedContractArtifact = contractArtifacts.find(a => {
+    // Match by contract name (remove .sol extension from file name)
+    const contractName = selectedContract?.replace('.sol', '');
+    return a.name === contractName;
+  });
 
   return (
     <div className="h-full bg-gray-900 flex">
@@ -87,7 +112,8 @@ export function ContractsPanel() {
           {contractFiles.length > 0 ? (
             <div className="space-y-1">
               {contractFiles.map((file) => {
-                const hasArtifact = contractArtifacts.some(a => a.name === file.name.replace('.sol', ''));
+                const contractName = file.name.replace('.sol', '');
+                const hasArtifact = contractArtifacts.some(a => a.name === contractName);
                 return (
                   <div
                     key={file.name}
@@ -113,10 +139,13 @@ export function ContractsPanel() {
             <div className="text-gray-400 text-sm text-center py-8">
               <FileCode size={32} className="mx-auto mb-2 opacity-50" />
               <p>No contracts found</p>
+              <p className="text-xs mt-1">Add .sol files to contracts/src/</p>
             </div>
           )}
         </div>
-      </div>
+      }
+
+
 
       {/* Contract Details */}
       <div className="flex-1 flex flex-col">
@@ -157,55 +186,98 @@ export function ContractsPanel() {
               </div>
 
               {/* Contract Info */}
-              {selectedContractArtifact && (
-                <div className="w-80 bg-gray-800 border-l border-gray-700 flex flex-col">
-                  <div className="px-4 py-2 border-b border-gray-700">
-                    <h3 className="text-gray-300 text-sm font-medium flex items-center gap-2">
-                      <Package size={14} />
-                      Contract Info
-                    </h3>
-                  </div>
-                  
-                  <div className="flex-1 p-4 overflow-auto space-y-4">
-                    {/* Compilation Status */}
-                    <div>
-                      <h4 className="text-white text-sm font-medium mb-2">Status</h4>
+              <div className="w-80 bg-gray-800 border-l border-gray-700 flex flex-col">
+                <div className="px-4 py-2 border-b border-gray-700">
+                  <h3 className="text-gray-300 text-sm font-medium flex items-center gap-2">
+                    <Package size={14} />
+                    Contract Info
+                  </h3>
+                </div>
+                
+                <div className="flex-1 p-4 overflow-auto space-y-4">
+                  {/* Compilation Status */}
+                  <div>
+                    <h4 className="text-white text-sm font-medium mb-2">Status</h4>
+                    {selectedContractArtifact ? (
                       <div className="flex items-center gap-2 text-green-400 text-sm">
                         <CheckCircle size={14} />
                         Compiled Successfully
                       </div>
-                    </div>
-
-                    {/* ABI */}
-                    <div>
-                      <h4 className="text-white text-sm font-medium mb-2">ABI Functions</h4>
-                      <div className="space-y-1">
-                        {selectedContractArtifact.abi
-                          .filter(item => item.type === 'function')
-                          .slice(0, 5)
-                          .map((func, index) => (
-                            <div key={index} className="text-xs text-gray-400 font-mono bg-gray-900 p-2 rounded">
-                              {func.name}({func.inputs?.map((input: any) => `${input.type} ${input.name}`).join(', ')})
-                            </div>
-                          ))}
-                        {selectedContractArtifact.abi.filter(item => item.type === 'function').length > 5 && (
-                          <div className="text-xs text-gray-500">
-                            +{selectedContractArtifact.abi.filter(item => item.type === 'function').length - 5} more functions
-                          </div>
-                        )}
+                    ) : (
+                      <div className="flex items-center gap-2 text-yellow-400 text-sm">
+                        <AlertCircle size={14} />
+                        Not Compiled
                       </div>
-                    </div>
-
-                    {/* Bytecode Info */}
-                    <div>
-                      <h4 className="text-white text-sm font-medium mb-2">Bytecode</h4>
-                      <div className="text-xs text-gray-400">
-                        Size: {selectedContractArtifact.bytecode ? Math.floor(selectedContractArtifact.bytecode.length / 2) : 0} bytes
-                      </div>
-                    </div>
+                    )}
                   </div>
+
+                  {selectedContractArtifact ? (
+                    <>
+                      {/* ABI Functions */}
+                      <div>
+                        <h4 className="text-white text-sm font-medium mb-2">
+                          ABI Functions ({selectedContractArtifact.abi.filter(item => item.type === 'function').length})
+                        </h4>
+                        <div className="space-y-1 max-h-64 overflow-y-auto">
+                          {selectedContractArtifact.abi
+                            .filter(item => item.type === 'function')
+                            .map((func, index) => (
+                              <div key={index} className="text-xs text-gray-400 font-mono bg-gray-900 p-2 rounded">
+                                <div className="font-medium text-gray-300">{func.name}</div>
+                                <div className="text-gray-500 mt-1">
+                                  ({func.inputs?.map((input: any) => `${input.type} ${input.name}`).join(', ')})
+                                  {func.outputs && func.outputs.length > 0 && (
+                                    <span> → {func.outputs.map((output: any) => output.type).join(', ')}</span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          {selectedContractArtifact.abi.filter(item => item.type === 'function').length === 0 && (
+                            <div className="text-xs text-gray-500 text-center py-4">
+                              No functions found
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Events */}
+                      {selectedContractArtifact.abi.filter(item => item.type === 'event').length > 0 && (
+                        <div>
+                          <h4 className="text-white text-sm font-medium mb-2">
+                            Events ({selectedContractArtifact.abi.filter(item => item.type === 'event').length})
+                          </h4>
+                          <div className="space-y-1 max-h-32 overflow-y-auto">
+                            {selectedContractArtifact.abi
+                              .filter(item => item.type === 'event')
+                              .map((event, index) => (
+                                <div key={index} className="text-xs text-gray-400 font-mono bg-gray-900 p-2 rounded">
+                                  <div className="font-medium text-gray-300">{event.name}</div>
+                                  <div className="text-gray-500 mt-1">
+                                    ({event.inputs?.map((input: any) => `${input.type} ${input.name}`).join(', ')})
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Bytecode Info */}
+                      <div>
+                        <h4 className="text-white text-sm font-medium mb-2">Bytecode</h4>
+                        <div className="text-xs text-gray-400">
+                          Size: {selectedContractArtifact.bytecode ? Math.floor(selectedContractArtifact.bytecode.length / 2) : 0} bytes
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-8 text-gray-400">
+                      <AlertCircle size={32} className="mx-auto mb-3 opacity-50" />
+                      <p className="text-sm">Contract not compiled</p>
+                      <p className="text-xs mt-1">Compile to see ABI and functions</p>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </>
         ) : (
