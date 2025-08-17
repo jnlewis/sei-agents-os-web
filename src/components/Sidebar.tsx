@@ -28,7 +28,7 @@ export function Sidebar({ width }: SidebarProps) {
       <div className="p-4 border-b border-gray-700">
         <div className="flex items-center gap-2 text-white">
           <MessageSquare size={20} />
-          <h1 className="font-semibold">AI Code Generator</h1>
+          <h1 className="font-semibold">SEI Agents OS</h1>
         </div>
       </div>
 
@@ -41,7 +41,7 @@ export function Sidebar({ width }: SidebarProps) {
         ) : messages.length === 0 ? (
           <div className="text-gray-400 text-center py-8">
             <MessageSquare size={48} className="mx-auto mb-4 opacity-50" />
-            <p>Describe the app you want to build...</p>
+            <p>Describe the app and contract you want to build...</p>
           </div>
         ) : (
           messages.map((message) => (
@@ -68,7 +68,7 @@ export function Sidebar({ width }: SidebarProps) {
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Describe your app..."
+            placeholder="Describe your app and contract"
             className="flex-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none disabled:opacity-50"
             disabled={isLoading || !isInitialized}
           />
