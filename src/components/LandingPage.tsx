@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Code, Zap, Bot, Shield, Rocket, CheckCircle, Star, Users, Globe } from 'lucide-react';
+import { ArrowRight, Code, Zap, Bot, Shield, Rocket, CheckCircle, Users, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export function LandingPage() {
@@ -213,68 +213,6 @@ export function LandingPage() {
                 One-click deployment to SEI mainnet or testnet. 
                 Your app is live and ready for users.
               </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Social Proof */}
-      <section className="px-6 py-20 bg-black/20">
-        <div className="max-w-7xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-white mb-12">
-            Trusted by Builders Worldwide
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            <div className="p-6 bg-gray-800/50 rounded-xl">
-              <div className="flex items-center justify-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={20} className="text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-300 mb-4">
-                "Built my first DeFi protocol in under an hour. The AI understood exactly what I wanted."
-              </p>
-              <div className="text-purple-400 font-semibold">- Sarah Chen, DeFi Developer</div>
-            </div>
-
-            <div className="p-6 bg-gray-800/50 rounded-xl">
-              <div className="flex items-center justify-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={20} className="text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-300 mb-4">
-                "The automated agents saved me weeks of development time. Incredible platform!"
-              </p>
-              <div className="text-purple-400 font-semibold">- Marcus Rodriguez, Founder</div>
-            </div>
-
-            <div className="p-6 bg-gray-800/50 rounded-xl">
-              <div className="flex items-center justify-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={20} className="text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-300 mb-4">
-                "Finally, a tool that makes blockchain development accessible to everyone."
-              </p>
-              <div className="text-purple-400 font-semibold">- Alex Kim, Product Manager</div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center gap-8 text-gray-400">
-            <div className="flex items-center gap-2">
-              <Users size={20} />
-              <span>10,000+ Developers</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Rocket size={20} />
-              <span>5,000+ Apps Deployed</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Zap size={20} />
-              <span>99.9% Uptime</span>
             </div>
           </div>
         </div>
