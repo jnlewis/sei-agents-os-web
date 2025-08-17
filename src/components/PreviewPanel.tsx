@@ -51,7 +51,7 @@ export function PreviewPanel() {
             <div className="text-center">
               <div className="animate-spin w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full mx-auto mb-4"></div>
               <p className="text-gray-400">
-                {isDisabled ? 'Updating files...' : 'Initializing WebContainer...'}
+                {isDisabled ? 'Updating files...' : 'Initializing Preview...'}
               </p>
             </div>
           </div>
