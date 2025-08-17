@@ -35,7 +35,7 @@ export function Sidebar({ width }: SidebarProps) {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {!isInitialized ? (
           <div className="text-gray-400 text-center py-8">
-            <div className="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <div className="animate-spin w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full mx-auto mb-4"></div>
             <p>Initializing project...</p>
           </div>
         ) : messages.length === 0 ? (
