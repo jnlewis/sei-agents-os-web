@@ -27,11 +27,10 @@ export function ContractsPanel() {
   }, []);
 
   const loadContractFiles = () => {
-    // Load all .sol files from /contracts/src
+    // Load all .sol files from contracts/src directory
     const files: ContractFile[] = [];
     const projectFiles = getProjectFiles();
     
-    // Find all .sol files in contracts/src
     projectFiles
       .filter(file => file.path.startsWith('contracts/src/') && file.path.endsWith('.sol'))
       .forEach(file => {
@@ -50,21 +49,24 @@ export function ContractsPanel() {
   };
 
   const loadContractArtifacts = () => {
-    // Load all contract artifacts from /contracts/artifacts
+    // Load all contract artifacts from contracts/artifacts directory
     const artifacts: ContractArtifact[] = [];
     const projectFiles = getProjectFiles();
     
-    // Find all .json files in contracts/artifacts
     projectFiles
       .filter(file => 
         file.path.startsWith('contracts/artifacts/') && 
         file.path.endsWith('.json') &&
-        !file.path.includes('.dbg.json') // Exclude debug files
+        !file.path.includes('.dbg.json') &&
+        !file.path.includes('build-info')
       )
       .forEach(file => {
         try {
           const parsed = JSON.parse(file.content);
-          const contractName = file.path.split('/').pop()?.replace('.json', '') || '';
+          // Extract contract name from path (e.g., contracts/artifacts/Token.sol/Token.json -> Token)
+          const pathParts = file.path.split('/');
+          const fileName = pathParts[pathParts.length - 1];
+          const contractName = fileName.replace('.json', '');
           
           artifacts.push({
             name: contractName,
@@ -216,19 +218,55 @@ export function ContractsPanel() {
                       {/* ABI Functions */}
                       <div>
                         <h4 className="text-white text-sm font-medium mb-2">
-                          ABI Functions ({selectedContractArtifact.abi.filter(item => item.type === 'function').length})
+                          Functions ({selectedContractArtifact.abi.filter(item => item.type === 'function').length})
                         </h4>
-                        <div className="space-y-1 max-h-64 overflow-y-auto">
+                        <div className="space-y-2 max-h-80 overflow-y-auto">
                           {selectedContractArtifact.abi
                             .filter(item => item.type === 'function')
                             .map((func, index) => (
-                              <div key={index} className="text-xs text-gray-400 font-mono bg-gray-900 p-2 rounded">
-                                <div className="font-medium text-gray-300">{func.name}</div>
-                                <div className="text-gray-500 mt-1">
-                                  ({func.inputs?.map((input: any) => `${input.type} ${input.name}`).join(', ')})
-                                  {func.outputs && func.outputs.length > 0 && (
-                                    <span> → {func.outputs.map((output: any) => output.type).join(', ')}</span>
-                                  )}
+                              <div key={index} className="bg-gray-900 p-3 rounded border border-gray-700">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="text-sm font-medium text-white">{func.name}</span>
+                                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                    func.stateMutability === 'view' || func.stateMutability === 'pure'
+                                      ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
+                                      : func.stateMutability === 'payable'
+                                      ? 'bg-yellow-600/20 text-yellow-400 border border-yellow-500/30'
+                                      : 'bg-purple-600/20 text-purple-400 border border-purple-500/30'
+                                  }`}>
+                                    {func.stateMutability || 'nonpayable'}
+                                  </span>
+                                </div>
+                                
+                                {/* Parameters */}
+                                {func.inputs && func.inputs.length > 0 && (
+                                  <div className="mb-2">
+                                    <div className="text-xs text-gray-400 mb-1">Parameters:</div>
+                                    <div className="space-y-1">
+                                      {func.inputs.map((input: any, inputIndex: number) => (
+                                        <div key={inputIndex} className="text-xs font-mono text-gray-300 bg-gray-800 px-2 py-1 rounded">
+                                          <span className="text-blue-400">{input.type}</span>
+                                          {input.name && <span className="text-gray-300 ml-2">{input.name}</span>}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {/* Return values */}
+                                {func.outputs && func.outputs.length > 0 && (
+                                  <div>
+                                    <div className="text-xs text-gray-400 mb-1">Returns:</div>
+                                    <div className="space-y-1">
+                                      {func.outputs.map((output: any, outputIndex: number) => (
+                                        <div key={outputIndex} className="text-xs font-mono text-gray-300 bg-gray-800 px-2 py-1 rounded">
+                                          <span className="text-green-400">{output.type}</span>
+                                          {output.name && <span className="text-gray-300 ml-2">{output.name}</span>}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
                                 </div>
                               </div>
                             ))}
@@ -246,14 +284,50 @@ export function ContractsPanel() {
                           <h4 className="text-white text-sm font-medium mb-2">
                             Events ({selectedContractArtifact.abi.filter(item => item.type === 'event').length})
                           </h4>
-                          <div className="space-y-1 max-h-32 overflow-y-auto">
+                          <div className="space-y-2 max-h-40 overflow-y-auto">
                             {selectedContractArtifact.abi
                               .filter(item => item.type === 'event')
                               .map((event, index) => (
-                                <div key={index} className="text-xs text-gray-400 font-mono bg-gray-900 p-2 rounded">
-                                  <div className="font-medium text-gray-300">{event.name}</div>
-                                  <div className="text-gray-500 mt-1">
-                                    ({event.inputs?.map((input: any) => `${input.type} ${input.name}`).join(', ')})
+                                <div key={index} className="bg-gray-900 p-3 rounded border border-gray-700">
+                                  <div className="text-sm font-medium text-white mb-2">{event.name}</div>
+                                  {event.inputs && event.inputs.length > 0 && (
+                                    <div className="space-y-1">
+                                      {event.inputs.map((input: any, inputIndex: number) => (
+                                        <div key={inputIndex} className="text-xs font-mono text-gray-300 bg-gray-800 px-2 py-1 rounded">
+                                          <span className="text-orange-400">{input.type}</span>
+                                          {input.name && <span className="text-gray-300 ml-2">{input.name}</span>}
+                                          {input.indexed && <span className="text-yellow-400 ml-2">(indexed)</span>}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Constructor */}
+                      {selectedContractArtifact.abi.filter(item => item.type === 'constructor').length > 0 && (
+                        <div>
+                          <h4 className="text-white text-sm font-medium mb-2">Constructor</h4>
+                          <div className="space-y-2">
+                            {selectedContractArtifact.abi
+                              .filter(item => item.type === 'constructor')
+                              .map((constructor, index) => (
+                                <div key={index} className="bg-gray-900 p-3 rounded border border-gray-700">
+                                  {constructor.inputs && constructor.inputs.length > 0 ? (
+                                    <div className="space-y-1">
+                                      {constructor.inputs.map((input: any, inputIndex: number) => (
+                                        <div key={inputIndex} className="text-xs font-mono text-gray-300 bg-gray-800 px-2 py-1 rounded">
+                                          <span className="text-blue-400">{input.type}</span>
+                                          {input.name && <span className="text-gray-300 ml-2">{input.name}</span>}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="text-xs text-gray-400">No parameters</div>
+                                  )}
                                   </div>
                                 </div>
                               ))}
