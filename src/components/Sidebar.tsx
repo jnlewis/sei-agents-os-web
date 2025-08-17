@@ -138,14 +138,6 @@ export function Sidebar({ width }: SidebarProps) {
 
       <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
         <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={toggleExamples}
-            className="px-3 py-2 text-gray-400 hover:text-blue-400 hover:bg-gray-700 rounded-lg transition-colors"
-            title="Try an example"
-          >
-            <Lightbulb size={16} />
-          </button>
           <input
             type="text"
             value={inputValue}
