@@ -1,6 +1,7 @@
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { ProjectFile } from '../types';
+import { shouldExcludeFile, FILE_FILTER_CONFIG } from '../config/fileFilters';
 
 export class DownloadService {
   static async downloadProjectFiles(
@@ -53,32 +54,38 @@ export class DownloadService {
   }
 
   private static filterFilesByType(files: ProjectFile[], type: 'all' | 'app' | 'contracts'): ProjectFile[] {
+    // First apply the central file filtering
+    const centrallyFiltered = files.filter(file => {
+      // Apply path-based filtering from config
+      if (shouldExcludeFile(file.path)) {
+        console.log(`Download: Filtering out file: ${file.path} (excluded by central config)`);
+        return false;
+      }
+      
+      // Apply size-based filtering from config
+      if (file.content.length > FILE_FILTER_CONFIG.maxFileSize) {
+        console.log(`Download: Filtering out file: ${file.path} (too large: ${file.content.length} bytes)`);
+        return false;
+      }
+      
+      return true;
+    });
+    
+    // Then apply type-specific filtering
     switch (type) {
       case 'app':
-        return files.filter(file => 
-          file.path.startsWith('app/') && 
-          !file.path.includes('node_modules') &&
-          !file.path.includes('dist') &&
-          !file.path.includes('build')
+        return centrallyFiltered.filter(file => 
+          file.path.startsWith('app/')
         );
       
       case 'contracts':
-        return files.filter(file => 
-          file.path.startsWith('contracts/') &&
-          !file.path.includes('node_modules') &&
-          !file.path.includes('cache') &&
-          !file.path.includes('artifacts')
+        return centrallyFiltered.filter(file => 
+          file.path.startsWith('contracts/')
         );
       
       case 'all':
       default:
-        return files.filter(file => 
-          !file.path.includes('node_modules') &&
-          !file.path.includes('dist') &&
-          !file.path.includes('build') &&
-          !file.path.includes('cache') &&
-          !file.path.includes('.git')
-        );
+        return centrallyFiltered;
     }
   }
 
