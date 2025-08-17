@@ -7,22 +7,17 @@ const EXAMPLE_PROMPTS = [
   {
     title: "Token Swap DApp",
     description: "Simple token swapping interface",
-    prompt: "Create a simple token swap DApp on SEI with a clean interface where users can swap between two tokens. Include wallet connection and basic swap functionality."
+    prompt: "Create a simple token swap DApp with a clean interface where users can swap between two tokens. Include wallet connection and basic swap functionality."
   },
   {
     title: "NFT Minting App",
     description: "Basic NFT minting interface",
-    prompt: "Build an NFT minting app on SEI where users can mint simple NFTs. Include a minting form, wallet connection, and display of minted NFTs."
+    prompt: "Build an NFT minting app where users can mint simple NFTs. Include a minting form, wallet connection, and display of minted NFTs."
   },
   {
     title: "Staking Dashboard",
     description: "Token staking interface",
     prompt: "Create a staking dashboard on SEI where users can stake tokens and view their rewards. Include stake, unstake, and claim rewards functionality."
-  },
-  {
-    title: "DeFi Portfolio Tracker",
-    description: "Track DeFi positions",
-    prompt: "Build a DeFi portfolio tracker that shows user's token balances and positions on SEI. Include wallet connection and balance display."
   }
 ];
 
