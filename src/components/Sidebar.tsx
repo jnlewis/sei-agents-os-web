@@ -50,12 +50,12 @@ export function Sidebar({ width }: SidebarProps) {
         )}
         
         {isLoading && isInitialized && (
-          <div className="text-blue-400 text-center">
+          <div className="text-purple-400 text-center">
             <div className="flex justify-center">
               <div className="flex space-x-2">
-                <div className="w-3 h-3 bg-blue-400 rounded-full animate-bounce"></div>
-                <div className="w-3 h-3 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-3 h-3 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce"></div>
+                <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
             </div>
           </div>
@@ -69,7 +69,7 @@ export function Sidebar({ width }: SidebarProps) {
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Describe your app and contract"
-            className="flex-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none disabled:opacity-50"
+            className="flex-1 px-3 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-purple-500 focus:outline-none disabled:opacity-50"
             disabled={isLoading || !isInitialized}
           />
           <button
