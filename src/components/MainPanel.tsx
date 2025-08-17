@@ -16,7 +16,7 @@ export function MainPanel() {
             onClick={() => setActiveTab('code')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'code'
-                ? 'bg-blue-600 text-white'
+                ? 'bg-purple-600 text-white'
                 : 'text-gray-400 hover:text-white hover:bg-gray-700'
             }`}
           >
@@ -27,7 +27,7 @@ export function MainPanel() {
             onClick={() => setActiveTab('preview')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'preview'
-                ? 'bg-blue-600 text-white'
+                ? 'bg-purple-600 text-white'
                 : 'text-gray-400 hover:text-white hover:bg-gray-700'
             }`}
           >
@@ -38,7 +38,7 @@ export function MainPanel() {
             onClick={() => setActiveTab('contracts')}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'contracts'
-                ? 'bg-blue-600 text-white'
+                ? 'bg-purple-600 text-white'
                 : 'text-gray-400 hover:text-white hover:bg-gray-700'
             }`}
           >

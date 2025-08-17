@@ -106,10 +106,10 @@ export function ChatMessageCommandAction({ command, targetDir = '/app', onComple
       default: // pending
         return {
           icon: Play,
-          bgColor: 'bg-blue-600/20',
-          borderColor: 'border-blue-500/30',
-          textColor: 'text-blue-400',
-          iconColor: 'text-blue-400',
+          bgColor: 'bg-purple-600/20',
+          borderColor: 'border-purple-500/30',
+          textColor: 'text-purple-400',
+          iconColor: 'text-purple-400',
           animate: ''
         };
     }

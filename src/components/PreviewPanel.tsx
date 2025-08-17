@@ -49,7 +49,7 @@ export function PreviewPanel() {
         {containerLoading || isDisabled ? (
           <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
             <div className="text-center">
-              <div className="animate-spin w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <div className="animate-spin w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full mx-auto mb-4"></div>
               <p className="text-gray-400">
                 {isDisabled ? 'Updating files...' : 'Initializing WebContainer...'}
               </p>

@@ -44,11 +44,11 @@ export function ChatMessageFileAction({ filePath, contentType, isCompleted = fal
         return {
           icon: Edit3,
           label: 'Updating',
-          bgColor: 'bg-blue-600/20',
-          borderColor: 'border-blue-500/30',
-          textColor: 'text-blue-400',
-          hoverColor: 'hover:bg-blue-600/30',
-          iconColor: 'text-blue-400'
+          bgColor: 'bg-purple-600/20',
+          borderColor: 'border-purple-500/30',
+          textColor: 'text-purple-400',
+          hoverColor: 'hover:bg-purple-600/30',
+          iconColor: 'text-purple-400'
         };
     }
   };

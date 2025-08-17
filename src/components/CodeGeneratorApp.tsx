@@ -42,8 +42,8 @@ export function CodeGeneratorApp() {
           <Sidebar width={sidebarWidth} />
           
           <div
-            className={`w-1 bg-gray-700 cursor-col-resize hover:bg-blue-500 transition-colors ${
-              isResizing ? 'bg-blue-500' : ''
+            className={`w-1 bg-gray-700 cursor-col-resize hover:bg-purple-500 transition-colors ${
+              isResizing ? 'bg-purple-500' : ''
             }`}
             onMouseDown={handleMouseDown}
           />

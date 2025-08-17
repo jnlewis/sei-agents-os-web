@@ -107,14 +107,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
   return (
     <div className={`flex gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
       <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-        isUser ? 'bg-blue-600' : 'bg-gray-600'
+        isUser ? 'bg-purple-600' : 'bg-gray-600'
       }`}>
         {isUser ? <User size={16} /> : <Bot size={16} />}
       </div>
       
       <div className={`flex-1 ${isUser ? 'text-right' : ''}`}>
         {isUser ? (
-          <div className="inline-block max-w-full p-3 rounded-lg bg-blue-600 text-white">
+          <div className="inline-block max-w-full p-3 rounded-lg bg-purple-600 text-white">
             <div className="whitespace-pre-wrap text-sm leading-relaxed">
               {message.content}
             </div>

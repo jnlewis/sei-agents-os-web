@@ -38,7 +38,7 @@ export function ChatMessageText({ content }: ChatMessageTextProps) {
             ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
             li: ({ children }) => <li className="text-gray-100">{children}</li>,
             blockquote: ({ children }) => (
-              <blockquote className="border-l-4 border-blue-500 pl-3 italic text-gray-300 mb-2">
+              <blockquote className="border-l-4 border-purple-500 pl-3 italic text-gray-300 mb-2">
                 {children}
               </blockquote>
             ),
@@ -47,7 +47,7 @@ export function ChatMessageText({ content }: ChatMessageTextProps) {
                 href={href} 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-blue-400 hover:text-blue-300 underline"
+                className="text-purple-400 hover:text-purple-300 underline"
               >
                 {children}
               </a>

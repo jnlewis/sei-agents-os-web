@@ -93,7 +93,7 @@ export function ContractsPanel() {
                     key={file.name}
                     className={`flex items-center gap-2 px-3 py-2 rounded cursor-pointer text-sm transition-colors ${
                       selectedContract === file.name
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-purple-600 text-white'
                         : 'text-gray-300 hover:bg-gray-700'
                     }`}
                     onClick={() => setSelectedContract(file.name)}
@@ -125,7 +125,7 @@ export function ContractsPanel() {
             {/* Header */}
             <div className="bg-gray-800 px-4 py-3 border-b border-gray-700 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <FileCode size={20} className="text-blue-400" />
+                <FileCode size={20} className="text-purple-400" />
                 <div>
                   <h2 className="text-white font-medium">{selectedContractFile.name}</h2>
                   <p className="text-gray-400 text-xs">{selectedContractFile.path}</p>
