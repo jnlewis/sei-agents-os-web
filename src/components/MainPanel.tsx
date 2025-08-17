@@ -42,7 +42,7 @@ export function MainPanel() {
             }`}
           >
             <Eye size={16} />
-            Preview
+            Web Preview
           </button>
           <button
             onClick={() => setActiveTab('contracts')}
