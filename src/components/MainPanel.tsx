@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Code, Eye, FileCode } from 'lucide-react';
+import { Code, Eye, FileCode, Rocket } from 'lucide-react';
 import { FileExplorer } from './FileExplorer';
 import { CodeEditor } from './CodeEditor';
 import { PreviewPanel } from './PreviewPanel';
 import { ContractsPanel } from './ContractsPanel';
+import { DeploymentPanel } from './DeploymentPanel';
 
 export function MainPanel() {
-  const [activeTab, setActiveTab] = useState<'code' | 'preview' | 'contracts'>('preview');
+  const [activeTab, setActiveTab] = useState<'code' | 'preview' | 'contracts' | 'deployment'>('preview');
 
   return (
     <div className="h-full bg-gray-900 flex flex-col">
@@ -45,6 +46,17 @@ export function MainPanel() {
             <FileCode size={16} />
             Contracts
           </button>
+          <button
+            onClick={() => setActiveTab('deployment')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              activeTab === 'deployment'
+                ? 'bg-purple-600 text-white'
+                : 'text-gray-400 hover:text-white hover:bg-gray-700'
+            }`}
+          >
+            <Rocket size={16} />
+            Deployment
+          </button>
         </div>
       </div>
 
@@ -60,6 +72,8 @@ export function MainPanel() {
           </div>
         ) : activeTab === 'contracts' ? (
           <ContractsPanel />
+        ) : activeTab === 'deployment' ? (
+          <DeploymentPanel />
         ) : (
           <PreviewPanel />
         )}
