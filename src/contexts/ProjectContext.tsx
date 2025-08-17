@@ -617,6 +617,10 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const getProjectFiles = (): ProjectFile[] => {
+    return projectFiles;
+  };
+
   return (
     <ProjectContext.Provider value={{
       messages,
@@ -631,11 +635,6 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       getFileContent,
       updateFile,
       getProjectFiles
-    });
-  };
-
-  const getProjectFiles = (): ProjectFile[] => {
-    return projectFiles;
     }}>
       {children}
     </ProjectContext.Provider>
