@@ -28,13 +28,13 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto text-center">
           <div className="mb-8">
             <span className="inline-block px-4 py-2 bg-purple-600/20 border border-purple-500/30 rounded-full text-purple-300 text-sm font-medium mb-6">
-              🚀 Preview Release - Build the Future of DeFi
+              🚀 Preview Release - Build the Future of Blockchain
             </span>
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
             Build Complete
-            <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent"> DeFi Apps</span>
+            <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent"> Blockchain Apps</span>
             <br />
             on SEI in Minutes
           </h1>
@@ -80,7 +80,7 @@ export function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-4">
-              Everything You Need for Full-Stack DeFi
+              Everything You Need for Full-Stack dApps
             </h2>
             <p className="text-xl text-gray-400 max-w-2xl mx-auto">
               From smart contracts to user interfaces, build complete decentralized applications with AI assistance
@@ -152,7 +152,7 @@ export function LandingPage() {
                 </span>
               </div>
               <p className="text-gray-400 mb-6 leading-relaxed">
-                Intelligent agents that monitor, execute, and optimize your DeFi strategies. 
+                Intelligent agents that monitor, execute, and optimize your dApp strategies. 
                 From arbitrage to yield farming, automate complex blockchain interactions.
               </p>
               <ul className="space-y-2">
@@ -193,7 +193,7 @@ export function LandingPage() {
               </div>
               <h3 className="text-xl font-bold text-white mb-4">Describe Your App</h3>
               <p className="text-gray-400">
-                Tell our AI what kind of DeFi application you want to build. 
+                Tell our AI what kind of blockchain application you want to build. 
                 Be as detailed or as simple as you like.
               </p>
             </div>
@@ -230,7 +230,7 @@ export function LandingPage() {
             Ready to Build the Future?
           </h2>
           <p className="text-xl text-gray-400 mb-12">
-            Join thousands of developers building the next generation of DeFi applications on SEI
+            Join thousands of developers building the next generation of blockchain applications on SEI
           </p>
           
           <Link
@@ -259,7 +259,7 @@ export function LandingPage() {
             </div>
             
             <div className="text-gray-400 text-center md:text-right">
-              <p>&copy; {new Date().getFullYear()} SEI Agents OS. Building the future of DeFi.</p>
+              <p>&copy; {new Date().getFullYear()} SEI Agents OS. Building the future of blockchain.</p>
             </div>
           </div>
         </div>
