@@ -259,7 +259,7 @@ export function LandingPage() {
             </div>
             
             <div className="text-gray-400 text-center md:text-right">
-              <p>&copy; 2024 SEI Agents OS. Building the future of DeFi.</p>
+              <p>&copy; {new Date().getFullYear()} SEI Agents OS. Building the future of DeFi.</p>
             </div>
           </div>
         </div>
