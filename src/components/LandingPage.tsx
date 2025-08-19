@@ -244,7 +244,7 @@ export function LandingPage() {
                   $0
                   <span className="text-lg text-gray-400 font-normal">/month</span>
                 </div>
-                <p className="text-gray-400">Good for getting started</p>
+                <p className="text-gray-400">Good for exploring</p>
               </div>
               
               <ul className="space-y-4 mb-8">
