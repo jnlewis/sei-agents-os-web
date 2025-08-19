@@ -299,7 +299,7 @@ export function LandingPage() {
                 </li>
                 <li className="flex items-center gap-3 text-gray-300">
                   <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
-                  <span>Advanced AI models (Claude Sonnet)</span>
+                  <span>Advanced AI models</span>
                 </li>
                 <li className="flex items-center gap-3 text-gray-300">
                   <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
