@@ -283,7 +283,7 @@ export function LandingPage() {
               {/* Popular Badge */}
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
                 <span className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-bold rounded-full">
-                  Most Popular
+                  Unlocked in Preview
                 </span>
               </div>
               
