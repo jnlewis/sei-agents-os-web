@@ -250,7 +250,7 @@ export function LandingPage() {
               <ul className="space-y-4 mb-8">
                 <li className="flex items-center gap-3 text-gray-300">
                   <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
-                  <span>5 projects per month</span>
+                  <span>Daily limits</span>
                 </li>
                 <li className="flex items-center gap-3 text-gray-300">
                   <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
@@ -258,15 +258,11 @@ export function LandingPage() {
                 </li>
                 <li className="flex items-center gap-3 text-gray-300">
                   <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
-                  <span>Community support</span>
+                  <span>Create Web and Smart Contracts</span>
                 </li>
                 <li className="flex items-center gap-3 text-gray-300">
                   <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
                   <span>SEI testnet deployment</span>
-                </li>
-                <li className="flex items-center gap-3 text-gray-300">
-                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
-                  <span>Standard templates</span>
                 </li>
               </ul>
               
@@ -299,35 +295,23 @@ export function LandingPage() {
               <ul className="space-y-4 mb-8">
                 <li className="flex items-center gap-3 text-gray-300">
                   <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
-                  <span>Unlimited projects</span>
+                  <span>Higher limits</span>
                 </li>
                 <li className="flex items-center gap-3 text-gray-300">
                   <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
-                  <span>Advanced AI models (GPT-4, Claude)</span>
+                  <span>Advanced AI models (Claude Sonnet)</span>
                 </li>
                 <li className="flex items-center gap-3 text-gray-300">
                   <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
-                  <span>Priority support</span>
+                  <span>Create Web and Smart Contracts</span>
                 </li>
                 <li className="flex items-center gap-3 text-gray-300">
                   <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
-                  <span>Custom domain support</span>
+                  <span>Create Automated Agents (Coming soon)</span>
                 </li>
                 <li className="flex items-center gap-3 text-gray-300">
                   <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
                   <span>SEI mainnet deployment</span>
-                </li>
-                <li className="flex items-center gap-3 text-gray-300">
-                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
-                  <span>Premium templates</span>
-                </li>
-                <li className="flex items-center gap-3 text-gray-300">
-                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
-                  <span>Advanced analytics</span>
-                </li>
-                <li className="flex items-center gap-3 text-gray-300">
-                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
-                  <span>API access</span>
                 </li>
               </ul>
               
