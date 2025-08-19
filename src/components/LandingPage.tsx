@@ -223,6 +223,131 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section className="px-6 py-20 bg-black/20">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Simple, Transparent Pricing
+            </h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              Start building for free, upgrade when you need more power
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Free Tier */}
+            <div className="group p-8 bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-2xl border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 hover:transform hover:scale-105">
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold text-white mb-2">Free</h3>
+                <div className="text-4xl font-bold text-white mb-2">
+                  $0
+                  <span className="text-lg text-gray-400 font-normal">/month</span>
+                </div>
+                <p className="text-gray-400">Perfect for getting started</p>
+              </div>
+              
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-center gap-3 text-gray-300">
+                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
+                  <span>5 projects per month</span>
+                </li>
+                <li className="flex items-center gap-3 text-gray-300">
+                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
+                  <span>Basic AI model</span>
+                </li>
+                <li className="flex items-center gap-3 text-gray-300">
+                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
+                  <span>Community support</span>
+                </li>
+                <li className="flex items-center gap-3 text-gray-300">
+                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
+                  <span>SEI testnet deployment</span>
+                </li>
+                <li className="flex items-center gap-3 text-gray-300">
+                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
+                  <span>Standard templates</span>
+                </li>
+              </ul>
+              
+              <Link
+                to="/app"
+                className="w-full block text-center px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-semibold transition-colors"
+              >
+                Get Started Free
+              </Link>
+            </div>
+
+            {/* Pro Tier */}
+            <div className="group relative p-8 bg-gradient-to-br from-purple-800/30 to-blue-800/30 rounded-2xl border-2 border-purple-500/50 hover:border-purple-400/70 transition-all duration-300 hover:transform hover:scale-105">
+              {/* Popular Badge */}
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <span className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-bold rounded-full">
+                  Most Popular
+                </span>
+              </div>
+              
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-bold text-white mb-2">Pro</h3>
+                <div className="text-4xl font-bold text-white mb-2">
+                  $20
+                  <span className="text-lg text-gray-400 font-normal">/month</span>
+                </div>
+                <p className="text-gray-400">For serious builders</p>
+              </div>
+              
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-center gap-3 text-gray-300">
+                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
+                  <span>Unlimited projects</span>
+                </li>
+                <li className="flex items-center gap-3 text-gray-300">
+                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
+                  <span>Advanced AI models (GPT-4, Claude)</span>
+                </li>
+                <li className="flex items-center gap-3 text-gray-300">
+                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
+                  <span>Priority support</span>
+                </li>
+                <li className="flex items-center gap-3 text-gray-300">
+                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
+                  <span>Custom domain support</span>
+                </li>
+                <li className="flex items-center gap-3 text-gray-300">
+                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
+                  <span>SEI mainnet deployment</span>
+                </li>
+                <li className="flex items-center gap-3 text-gray-300">
+                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
+                  <span>Premium templates</span>
+                </li>
+                <li className="flex items-center gap-3 text-gray-300">
+                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
+                  <span>Advanced analytics</span>
+                </li>
+                <li className="flex items-center gap-3 text-gray-300">
+                  <CheckCircle size={20} className="text-green-400 flex-shrink-0" />
+                  <span>API access</span>
+                </li>
+              </ul>
+              
+              <button
+                disabled
+                className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Coming Soon
+              </button>
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
+            <p className="text-gray-400 text-sm">
+              All plans include access to our core AI-powered development platform
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="px-6 py-20">
         <div className="max-w-4xl mx-auto text-center">
