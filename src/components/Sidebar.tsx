@@ -5,9 +5,9 @@ import { useProject } from '../contexts/ProjectContext';
 
 const EXAMPLE_PROMPTS = [
   {
-    title: "Hello World Dapp",
+    title: "Hello World Dapp Demo",
     description: "A hello world decentralized app",
-    prompt: "Create a faucet app with a landing page where anyone can mint 10 free tokens by entering their address and clicking a button. Users can also connect their wallet and see their balance in the UI. The UX should show all functionality without wallet connect, and only require wallet connect when an action is taken that requires wallet connectivity."
+    prompt: "Create a simple hello world app and contract ."
   },
   {
     title: "Token Faucet",
