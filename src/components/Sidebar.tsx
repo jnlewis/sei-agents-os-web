@@ -23,12 +23,7 @@ const EXAMPLE_PROMPTS = [
   //   title: "NFT Minting App",
   //   description: "Basic NFT minting interface",
   //   prompt: "Build an NFT minting app where users can mint simple NFTs. Include a minting form, wallet connection, and display of minted NFTs. You may use placeholders instead of actual images."
-  // },
-  {
-    title: "Staking Dashboard",
-    description: "Token staking interface",
-    prompt: "Create a simple staking dashboard where users can stake tokens and view their rewards."
-  }
+  // }
 ];
 
 interface SidebarProps {
