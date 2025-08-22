@@ -7,7 +7,7 @@ const EXAMPLE_PROMPTS = [
   {
     title: "Hello World Dapp Demo",
     description: "A hello world decentralized app",
-    prompt: "Create a simple hello world app and smart contract to demo a basic decentralized app. If there is a wallet connectivity required, the UX should show all functionality without wallet connect, and only require wallet connect when an action is taken that requires wallet connectivity.."
+    prompt: "Create a simple hello world app and smart contract to demo a basic decentralized app. If there is a wallet connectivity required, the UX should show all functionality without wallet connect, and only require wallet connect when an action is taken that requires wallet connectivity."
   },
   {
     title: "Token Faucet",
