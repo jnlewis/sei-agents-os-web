@@ -7,7 +7,7 @@ const EXAMPLE_PROMPTS = [
   {
     title: "Hello World Dapp Demo",
     description: "A hello world decentralized app",
-    prompt: "Create a simple hello world app and contract ."
+    prompt: "Create a simple hello world app and smart contract to demo a basic decentralized app."
   },
   {
     title: "Token Faucet",
