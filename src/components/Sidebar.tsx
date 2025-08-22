@@ -10,15 +10,20 @@ const EXAMPLE_PROMPTS = [
     prompt: "Create a faucet app with a landing page where anyone can mint 10 free tokens by entering their address and clicking a button. Users can also connect their wallet and see their balance in the UI. The UX should show all functionality without wallet connect, and only require wallet connect when an action is taken that requires wallet connectivity."
   },
   {
+    title: "Token Faucet",
+    description: "Basic Token Faucet app",
+    prompt: "Create a faucet app with a landing page where anyone can mint 10 free tokens by entering their address and clicking a button. Users can also connect their wallet and see their balance in the UI. The UX should show all functionality without wallet connect, and only require wallet connect when an action is taken that requires wallet connectivity."
+  },
+  {
     title: "NFT Minter",
     description: "Basic NFT minting app",
     prompt: "Make an NFT minter app. The smart contract should let users mint NFTs with a token URI. The website should have a button to mint an NFT and show the last minted token ID. The UX should show all functionality without wallet connect, and only require wallet connect when an action is taken that requires wallet connectivity."
   },
-  {
-    title: "Token Swap DApp",
-    description: "Simple token swapping interface",
-    prompt: "Create a simple token swap DApp with a clean interface where users can swap between two tokens. Include wallet connection and basic swap functionality. The UX should show all functionality without wallet connect, and only require wallet connect when an action is taken that requires wallet connectivity."
-  },
+  // {
+  //   title: "Token Swap DApp",
+  //   description: "Simple token swapping interface",
+  //   prompt: "Create a simple token swap DApp with a clean interface where users can swap between two tokens. Include wallet connection and basic swap functionality. The UX should show all functionality without wallet connect, and only require wallet connect when an action is taken that requires wallet connectivity."
+  // },
   // {
   //   title: "NFT Minting App",
   //   description: "Basic NFT minting interface",
