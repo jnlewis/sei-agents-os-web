@@ -5,8 +5,8 @@ import { useProject } from '../contexts/ProjectContext';
 
 const EXAMPLE_PROMPTS = [
   {
-    title: "Crowdsale/Token Faucet",
-    description: "Basic Crowdsale or Token Faucet app",
+    title: "Token Faucet",
+    description: "Basic Token Faucet app",
     prompt: "Create a faucet app with a landing page where anyone can mint 10 free tokens by entering their address and clicking a button. Users can also connect their wallet and see their balance in the UI."
   },
   {
