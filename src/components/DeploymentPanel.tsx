@@ -1,7 +1,24 @@
 import React, { useState } from 'react';
-import { Rocket, Globe, Bot, FileCode, AlertCircle } from 'lucide-react';
+import { Rocket, Globe, Bot, FileCode, AlertCircle, X } from 'lucide-react';
+import { useProject } from '../contexts/ProjectContext';
 
 export function DeploymentPanel() {
+  const { getProjectFiles } = useProject();
+  const [showDeployModal, setShowDeployModal] = useState(false);
+  const [manualDeploymentContent, setManualDeploymentContent] = useState<string>('');
+
+  const handleContractDeployClick = () => {
+    // Load manual deployment content
+    const projectFiles = getProjectFiles();
+    const manualDeploymentFile = projectFiles.find(file => file.path === 'contracts/MANUAL_DEPLOYMENT.md');
+    if (manualDeploymentFile) {
+      setManualDeploymentContent(manualDeploymentFile.content);
+    } else {
+      setManualDeploymentContent('Manual deployment instructions not found. Please check the contracts/MANUAL_DEPLOYMENT.md file.');
+    }
+    setShowDeployModal(true);
+  };
+
   return (
     <div className="h-full bg-gray-900 flex flex-col">
       {/* Header */}
@@ -117,8 +134,8 @@ export function DeploymentPanel() {
               </div>
               
               <button
-                disabled
-                className="w-full px-4 py-2 bg-gray-600 text-gray-400 rounded-lg cursor-not-allowed flex items-center justify-center gap-2"
+                onClick={handleContractDeployClick}
+                className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
               >
                 <FileCode size={16} />
                 Deploy Contracts
@@ -173,6 +190,56 @@ export function DeploymentPanel() {
           </div>
 
         </div>
+
+        {/* Deploy Modal */}
+        {showDeployModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden border border-gray-700">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-700">
+                <div className="flex items-center gap-3">
+                  <AlertCircle size={20} className="text-yellow-400" />
+                  <h3 className="text-white font-medium">Manual Deployment Required</h3>
+                </div>
+                <button
+                  onClick={() => setShowDeployModal(false)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              {/* Modal Content */}
+              <div className="p-4">
+                <div className="bg-yellow-600/10 border border-yellow-500/30 rounded-lg p-4 mb-4">
+                  <p className="text-yellow-400 text-sm">
+                    Unable to automatically deploy contract. As a temporary solution, please refer to the manual deployment steps below.
+                  </p>
+                </div>
+                
+                <div className="bg-gray-900 rounded-lg p-4 max-h-96 overflow-y-auto">
+                  <div className="flex items-center gap-2 mb-3 text-gray-400">
+                    <FileCode size={16} />
+                    <span className="text-sm font-mono">contracts/MANUAL_DEPLOYMENT.md</span>
+                  </div>
+                  <pre className="text-gray-300 text-sm whitespace-pre-wrap font-mono leading-relaxed">
+                    {manualDeploymentContent}
+                  </pre>
+                </div>
+              </div>
+              
+              {/* Modal Footer */}
+              <div className="flex justify-end gap-3 p-4 border-t border-gray-700">
+                <button
+                  onClick={() => setShowDeployModal(false)}
+                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
