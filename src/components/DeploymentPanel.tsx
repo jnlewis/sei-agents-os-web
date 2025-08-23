@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Rocket, Globe, Bot, FileCode, AlertCircle, X } from 'lucide-react';
 import { useProject } from '../contexts/ProjectContext';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export function DeploymentPanel() {
   const { getProjectFiles } = useProject();
@@ -222,9 +224,69 @@ export function DeploymentPanel() {
                     <FileCode size={16} />
                     <span className="text-sm font-mono">contracts/MANUAL_DEPLOYMENT.md</span>
                   </div>
-                  <pre className="text-gray-300 text-sm whitespace-pre-wrap font-mono leading-relaxed">
-                    {manualDeploymentContent}
-                  </pre>
+                  <div className="prose prose-invert prose-sm max-w-none">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        h1: ({ children }) => <h1 className="text-lg font-bold mb-3 text-white">{children}</h1>,
+                        h2: ({ children }) => <h2 className="text-base font-bold mb-2 text-white">{children}</h2>,
+                        h3: ({ children }) => <h3 className="text-sm font-bold mb-2 text-white">{children}</h3>,
+                        p: ({ children }) => <p className="mb-3 text-gray-300 leading-relaxed">{children}</p>,
+                        code: ({ inline, children }) => 
+                          inline ? (
+                            <code className="bg-gray-800 px-2 py-1 rounded text-xs font-mono text-green-400">
+                              {children}
+                            </code>
+                          ) : (
+                            <code className="block bg-gray-800 p-3 rounded text-sm font-mono text-green-400 overflow-x-auto">
+                              {children}
+                            </code>
+                          ),
+                        pre: ({ children }) => (
+                          <pre className="bg-gray-800 p-4 rounded-lg overflow-x-auto mb-3 border border-gray-700">
+                            {children}
+                          </pre>
+                        ),
+                        ul: ({ children }) => <ul className="list-disc list-inside mb-3 space-y-1 text-gray-300">{children}</ul>,
+                        ol: ({ children }) => <ol className="list-decimal list-inside mb-3 space-y-1 text-gray-300">{children}</ol>,
+                        li: ({ children }) => <li className="text-gray-300">{children}</li>,
+                        blockquote: ({ children }) => (
+                          <blockquote className="border-l-4 border-purple-500 pl-4 italic text-gray-400 mb-3">
+                            {children}
+                          </blockquote>
+                        ),
+                        a: ({ href, children }) => (
+                          <a 
+                            href={href} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-purple-400 hover:text-purple-300 underline"
+                          >
+                            {children}
+                          </a>
+                        ),
+                        table: ({ children }) => (
+                          <div className="overflow-x-auto mb-3">
+                            <table className="min-w-full border border-gray-600 rounded">
+                              {children}
+                            </table>
+                          </div>
+                        ),
+                        th: ({ children }) => (
+                          <th className="border border-gray-600 px-3 py-2 bg-gray-800 text-left font-medium text-white">
+                            {children}
+                          </th>
+                        ),
+                        td: ({ children }) => (
+                          <td className="border border-gray-600 px-3 py-2 text-gray-300">
+                            {children}
+                          </td>
+                        ),
+                      }}
+                    >
+                      {manualDeploymentContent}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               </div>
               
