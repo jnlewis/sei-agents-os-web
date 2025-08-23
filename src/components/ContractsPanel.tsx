@@ -82,21 +82,6 @@ export function ContractsPanel() {
     setContractArtifacts(artifacts);
   };
 
-  // Refresh data when project files change
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const currentSelection = selectedContract;
-      loadContractFiles();
-      loadContractArtifacts();
-      // Restore selection if it was cleared during reload
-      if (currentSelection && !selectedContract) {
-        setSelectedContract(currentSelection);
-      }
-    }, 2000); // Check every 2 seconds for updates
-
-    return () => clearInterval(interval);
-  }, [selectedContract]);
-
   const selectedContractFile = contractFiles.find(f => f.name === selectedContract);
   const selectedContractArtifact = contractArtifacts.find(a => {
     // Match by contract name (remove .sol extension from file name)
