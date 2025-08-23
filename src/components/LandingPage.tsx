@@ -52,9 +52,14 @@ export function LandingPage() {
               Start Building Now
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Link>
-            <button className="px-8 py-4 border-2 border-gray-600 hover:border-purple-500 text-gray-300 hover:text-white rounded-xl font-semibold text-lg transition-all duration-300">
+            <a
+              href="https://youtu.be/hzBG3xbVzBI"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-8 py-4 border-2 border-gray-600 hover:border-purple-500 text-gray-300 hover:text-white rounded-xl font-semibold text-lg transition-all duration-300"
+            >
               Watch Demo
-            </button>
+            </a>
           </div>
 
           {/* Stats */}
